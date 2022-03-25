@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "spec-version": "1.5"
+  },
+  "display-name": "Ariba",
+  "configuration-groups": [
+    {
+      "label": "Basic",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Reference Name",
+          "name": "referenceName",
+          "widget-attributes": {
+            "placeholder": "Used to uniquely identify this source for lineage, annotating metadata etc."
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "API Endpoint",
+          "name": "baseURL",
+          "widget-attributes": {
+            "placeholder": "Specify the base Path of Ariba API.  E.g. : https://sandbox.api.sap.com"
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "label": "System Type",
+          "name": "systemType",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "prod",
+            "options": [
+              {
+                "id": "prod",
+                "label": "Prod"
+              },
+              {
+                "id": "sandbox",
+                "label": "Sandbox"
+              }
+            ]
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Realm",
+          "name": "realm",
+          "widget-attributes": {
+            "placeholder": "Specify the realm name for the customer. E.g. : S4SVAll"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "View Template Name",
+          "name": "viewTemplateName",
+          "widget-attributes": {
+            "placeholder": "Specify the name of the view template you wish to create. E.g. : RequestFactSystemView"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Credentials",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Ariba Client ID",
+          "name": "clientId",
+          "widget-attributes": {
+            "placeholder": "Client Id"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Ariba Client Secret",
+          "name": "clientSecret",
+          "widget-attributes": {
+            "placeholder": "Client Secret"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Ariba API Key",
+          "name": "apiKey",
+          "widget-attributes": {
+            "placeholder": "Use any Application Key of an Application(s) you created in developer portal."
+          }
+        }
+      ]
+    },
+    {
+      "label": "Advanced",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "From Date",
+          "name": "fromDate",
+          "widget-attributes": {
+            "placeholder": "Start date of the extract. E.g. 2021-12-01T00:00:00Z"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "To Date",
+          "name": "toDate",
+          "widget-attributes": {
+            "placeholder": "End date of the extract. E.g. 2022-03-29T00:00:00Z"
+          }
+        }
+      ]
+    }
+  ]
+}
