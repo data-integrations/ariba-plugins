@@ -18,15 +18,16 @@ package io.cdap.plugin.ariba.source.util;
 
 import io.cdap.plugin.ariba.source.exception.AribaException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 /**
  * Utility class for common/repetitive logic and operations.
  */
 public class AribaUtil {
+
+  private static final Pattern TIMESTAMP_PATTERN =
+    Pattern.compile("\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d(?:\\.\\d+)?Z");
 
   private AribaUtil() {
   }
@@ -56,21 +57,10 @@ public class AribaUtil {
   /**
    * Check the given timestamp correctness. E.g. 2021-12-01T03:04:23Z
    *
-   * @param timeStamp from the plugin config.
    * @return boolean result of the check.
    */
-  public static boolean isValidDateFormat(String dateFormat, String timeStamp) {
-    final SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-    try {
-      final Date date = sdf.parse(timeStamp);
-
-      if (!timeStamp.equals(sdf.format(date))) {
-        return false;
-      }
-    } catch (ParseException e) {
-      return false;
-    }
-    return true;
+  public static boolean isValidDateFormat(String date) {
+    return !TIMESTAMP_PATTERN.matcher(date).matches();
 
   }
 

@@ -16,10 +16,14 @@
 
 package io.cdap.plugin.ariba.source;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.batch.Input;
 import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.batch.BatchSource;
@@ -28,12 +32,19 @@ import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
+import io.cdap.plugin.common.LineageRecorder;
+import io.cdap.plugin.common.SourceInputFormatProvider;
+import io.cdap.plugin.common.batch.JobUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * A {@link BatchSource} that reads data from Ariba
@@ -46,6 +57,7 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
 
   public static final String NAME = "Ariba";
   private static final Logger LOG = LoggerFactory.getLogger(AribaBatchSource.class);
+  private static final Gson GSON = new Gson();
   private final AribaPluginConfig pluginConfig;
   private final AribaServices aribaServices;
   public String accessToken;
@@ -67,9 +79,9 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
         // Get metadata if connection is successful
         if (accessToken != null) {
           pipelineConfigurer.getStageConfigurer().setOutputSchema(
-            aribaServices.buildOutputSchema(accessToken));
+            getOutputSchema());
         }
-      } catch (IOException exception) {
+      } catch (IOException | InterruptedException exception) {
         failureCollector.addFailure(exception.getMessage(), null);
         failureCollector.getOrThrowException();
       } catch (AribaException exception) {
@@ -83,7 +95,55 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
 
   @Override
   public void prepareRun(BatchSourceContext context) throws Exception {
-    // TODO: https://cdap.atlassian.net/browse/PLUGIN-1172
+    FailureCollector collector = context.getFailureCollector();
+    pluginConfig.validatePluginParameters(collector); // validate when macros are already substituted
+    collector.getOrThrowException();
+
+    Schema outputSchema = context.getOutputSchema();
+    if (outputSchema == null) {
+      outputSchema = getOutputSchema();
+    }
+    if (outputSchema == null) {
+      throw new IllegalArgumentException(ResourceConstants.ERR_MACRO_INPUT.getMsgForKeyWithCode());
+    }
+    setJobForDataRead(context, outputSchema);
+    emitLineage(context, outputSchema, pluginConfig.getViewTemplateName());
+    collector.getOrThrowException();
+  }
+
+  @Nullable
+  private Schema getOutputSchema() throws IOException, AribaException, InterruptedException {
+    String token = aribaServices.getAccessToken();
+    LOG.trace("Initiating Metadata Call To Ariba");
+    return aribaServices.buildOutputSchema(token);
+  }
+
+  private void setJobForDataRead(BatchSourceContext context, Schema outputSchema) throws IOException {
+    Job job = JobUtils.createInstance();
+    Configuration jobConfiguration = job.getConfiguration();
+    // Set plugin properties in Hadoop Job's configuration
+    jobConfiguration.set(ResourceConstants.ARIBA_PLUGIN_PROPERTIES, GSON.toJson(pluginConfig));
+    // Setting plugin output schema
+    jobConfiguration.set(ResourceConstants.OUTPUT_SCHEMA, outputSchema.toString());
+
+    jobConfiguration.set(ResourceConstants.ENCODED_ENTITY_METADATA_STRING, outputSchema.toString());
+    jobConfiguration.set(ResourceConstants.IS_PREVIEW_ENABLED, String.valueOf(context.isPreviewEnabled()));
+
+    SourceInputFormatProvider inputFormat = new SourceInputFormatProvider(AribaInputFormat.class, jobConfiguration);
+    context.setInput(Input.of(pluginConfig.getReferenceName(), inputFormat));
+  }
+
+  private void emitLineage(BatchSourceContext context, Schema schema, String entity) {
+    LineageRecorder lineageRecorder = new LineageRecorder(context, pluginConfig.getReferenceName());
+    lineageRecorder.createExternalDataset(schema);
+
+    if (schema.getFields() != null) {
+      String operationDesc = String.format("Read '%s' from ariba service '%s'", entity,
+                                           pluginConfig.getViewTemplateName());
+
+      lineageRecorder.recordRead(ResourceConstants.READ, operationDesc,
+                                 schema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList()));
+    }
   }
 
 
@@ -93,7 +153,8 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
    * @param aribaException   {@code AribaException}
    * @param failureCollector {@code FailureCollector}
    */
-  private void attachFieldWithError(AribaException aribaException, FailureCollector failureCollector) {
+  @VisibleForTesting
+  protected void attachFieldWithError(AribaException aribaException, FailureCollector failureCollector) {
 
     switch (aribaException.getErrorCode()) {
       case HttpURLConnection.HTTP_UNAUTHORIZED:
@@ -116,4 +177,5 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
         failureCollector.addFailure(errMsg, null);
     }
   }
+
 }
