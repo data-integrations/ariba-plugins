@@ -25,13 +25,13 @@ Feature: Ariba Source - Run time scenarios
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "SourcingProjectFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Click on the Validate button
     And Capture the generated Output Schema
     And Close the Plugin Properties page
@@ -53,13 +53,13 @@ Feature: Ariba Source - Run time scenarios
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "SourcingProjectFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Click on the Validate button
     And Capture the generated Output Schema
     And Close the Plugin Properties page
@@ -82,13 +82,13 @@ Feature: Ariba Source - Run time scenarios
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "SourcingProjectFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Enter input plugin property: "fromDate" with value: "ariba.fromdate"
     And Enter input plugin property: "toDate" with value: "ariba.todate"
     And Click on the Validate button
@@ -112,13 +112,13 @@ Feature: Ariba Source - Run time scenarios
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "SourcingProjectFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Enter input plugin property: "fromDate" with value: "ariba.fromdate"
     And Enter input plugin property: "toDate" with value: "ariba.todate"
     And Click on the Validate button
