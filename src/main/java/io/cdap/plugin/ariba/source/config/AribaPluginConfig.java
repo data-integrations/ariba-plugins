@@ -26,6 +26,10 @@ import io.cdap.plugin.common.ReferencePluginConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.annotation.Nullable;
 
 /**
@@ -44,6 +48,7 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   public static final String FROM_DATE = "fromDate";
   public static final String TO_DATE = "toDate";
   public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+  public static final String REFERENCE_NAME = "referenceName";
 
   private static final Logger LOG = LoggerFactory.getLogger(AribaPluginConfig.class);
   private static final String COMMON_ACTION = ResourceConstants.ERR_MISSING_PARAM_OR_MACRO_ACTION.getMsgForKey();
@@ -194,23 +199,23 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   private void validateMandatoryParameters(FailureCollector failureCollector) {
 
     if (AribaUtil.isNullOrEmpty(getReferenceName())) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Reference Name");
-      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty("referenceName");
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.REFERENCE_NAME);
+      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(REFERENCE_NAME);
     }
     if (AribaUtil.isNullOrEmpty(getBaseURL()) && !containsMacro(BASE_URL)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("API Endpoint");
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.API_END_POINT);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(BASE_URL);
     }
     if (AribaUtil.isNullOrEmpty(getSystemType()) && !containsMacro(SYSTEM_TYPE)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("System Type");
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.SYSTEM_TYPE);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(SYSTEM_TYPE);
     }
     if (AribaUtil.isNullOrEmpty(getRealm()) && !containsMacro(REALM)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Realm Name");
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.REALM_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(REALM);
     }
     if (AribaUtil.isNullOrEmpty(getViewTemplateName()) && !containsMacro(TEMPLATE_NAME)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("View Template Name");
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.VIEW_TEMPLATE_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(TEMPLATE_NAME);
     }
   }
@@ -243,18 +248,43 @@ public class AribaPluginConfig extends ReferencePluginConfig {
    */
   private void validateAdvanceParameters(FailureCollector failureCollector) {
 
+    DateFormat aribaDateFormat = new SimpleDateFormat(DATE_FORMAT);
     String action = ResourceConstants.ERR_NEGATIVE_PARAM_ACTION.getMsgForKey();
 
-    if (AribaUtil.isNotNullOrEmpty(fromDate) &&
-      !AribaUtil.isValidDateFormat(DATE_FORMAT, fromDate) && !containsMacro(FROM_DATE)) {
+    if (AribaUtil.isNotNullOrEmpty(fromDate) && AribaUtil.isValidDateFormat(fromDate)
+      && !containsMacro(FROM_DATE)) {
       String errMsg = ResourceConstants.ERR_NEGATIVE_PARAM_PREFIX.getMsgForKey("From date");
       failureCollector.addFailure(errMsg, action).withConfigProperty(FROM_DATE);
     }
 
-    if (AribaUtil.isNotNullOrEmpty(toDate) &&
-      !AribaUtil.isValidDateFormat(DATE_FORMAT, toDate) && !containsMacro(TO_DATE)) {
+    if (AribaUtil.isNotNullOrEmpty(toDate) && AribaUtil.isValidDateFormat(toDate)
+      && !containsMacro(TO_DATE)) {
       String errMsg = ResourceConstants.ERR_NEGATIVE_PARAM_PREFIX.getMsgForKey("To date");
       failureCollector.addFailure(errMsg, action).withConfigProperty(TO_DATE);
+    }
+
+    if ((AribaUtil.isNotNullOrEmpty(fromDate) && AribaUtil.isNullOrEmpty(toDate)) ||
+      (AribaUtil.isNotNullOrEmpty(toDate) && AribaUtil.isNullOrEmpty(fromDate))) {
+      failureCollector.addFailure(ResourceConstants.FILTER_ERROR,
+                                  action).withConfigProperty(TO_DATE).withConfigProperty(FROM_DATE);
+    }
+
+    try {
+      if (failureCollector.getValidationFailures().isEmpty()) {
+        Date startDate = aribaDateFormat.parse(fromDate);
+        Date endDate = aribaDateFormat.parse(toDate);
+        if (startDate.after(endDate)) {
+          failureCollector.addFailure(ResourceConstants.DATE_ERROR,
+                                      action).withConfigProperty(TO_DATE).withConfigProperty(FROM_DATE);
+        }
+        if ((endDate.getTime() - startDate.getTime() > Long.parseLong(ResourceConstants.FILTER_RANGE))) {
+          failureCollector.addFailure(ResourceConstants.FILTER_RANGE_EXCEED_ERROR,
+                                      action).withConfigProperty(TO_DATE).withConfigProperty(FROM_DATE);
+        }
+      }
+    } catch (ParseException e) {
+      failureCollector.addFailure(ResourceConstants.FILTER_DATE_PARSING_ERROR,
+                                  action).withConfigProperty(TO_DATE).withConfigProperty(FROM_DATE);
     }
   }
 

@@ -26,15 +26,15 @@ public class AribaException extends Exception {
   private final Integer errorCode;
 
   public AribaException(String message) {
-    this(message, null,  null);
+    this(message, null, null);
   }
 
   public AribaException(String message, Integer errorCode) {
-    this(message, errorCode,  null);
+    this(message, errorCode, null);
   }
 
   public AribaException(String message, Throwable cause) {
-    this(message,  null, cause);
+    this(message, null, cause);
   }
 
   public AribaException(String message, Integer errorCode, Throwable cause) {

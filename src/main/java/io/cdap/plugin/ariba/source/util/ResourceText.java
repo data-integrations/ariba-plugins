@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 /**
  * Util class to load and use the localized resource bundles for text and
  * messages.
- *
  */
 public class ResourceText {
 

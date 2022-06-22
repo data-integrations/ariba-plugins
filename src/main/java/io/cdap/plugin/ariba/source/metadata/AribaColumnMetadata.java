@@ -16,114 +16,147 @@
 
 package io.cdap.plugin.ariba.source.metadata;
 
-import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Ariba Column metadata details
  */
 public class AribaColumnMetadata {
 
-  public static final String SELECT_FIELDS = "selectFields";
-  public static final String NAME = "name";
-  public static final String TYPE = "type";
-  public static final String SIZE = "size";
-  public static final String ALLOWED_VALUES = "allowedValues";
-  public static final String IS_CUSTOM_FIELD = "isCustomField";
-  public static final String PRECISION = "precision";
-  public static final String SCALE = "scale";
-  private final String documentType;
-  private final List<ColumnDetails> columnDetails;
-  private List<AribaColumnMetadata> childList;
+  private final String viewTemplateName;
+  private final String name;
+  private final String type;
+  private final int size;
+  private final boolean isCustomField;
+  private final int precision;
+  private final int scale;
+  private final boolean isPrimaryKey;
+  private final List<AribaColumnMetadata> childList;
 
-  public AribaColumnMetadata(String documentType, List<ColumnDetails> columnDetails) {
-    this.documentType = documentType;
-    this.columnDetails = columnDetails;
+  public AribaColumnMetadata(String viewTemplateName, String name, String type, int size,
+                             boolean isCustomField,
+                             int precision, int scale, boolean isPrimaryKey,
+                             List<AribaColumnMetadata> childList) {
+    this.viewTemplateName = viewTemplateName;
+    this.name = name;
+    this.type = type;
+    this.size = size;
+    this.isCustomField = isCustomField;
+    this.precision = precision;
+    this.scale = scale;
+    this.isPrimaryKey = isPrimaryKey;
+    this.childList = childList;
   }
 
   public static Builder builder() {
     return new Builder();
   }
 
-  public String getDocumentType() {
-    return documentType;
+  public String getViewTemplateName() {
+    return viewTemplateName;
   }
 
-  public List<ColumnDetails> getColumnDetails() {
-    return Collections.unmodifiableList(columnDetails);
+  public String getName() {
+    return name;
   }
 
-  /**
-   * Column Details
-   */
-  public static class ColumnDetails {
-    private final String name;
-    private final String type;
-    private final int size;
-    private final String allowedValues;
-    private final boolean isCustomField;
-    private final int precision;
-    private final int scale;
+  public String getType() {
+    return type;
+  }
 
-    public ColumnDetails(String name, String type, int size, String allowedValues,
-                         boolean isCustomField, int precision, int scale) {
-      this.name = name;
-      this.type = type;
-      this.size = size;
-      this.allowedValues = allowedValues;
-      this.isCustomField = isCustomField;
-      this.precision = precision;
-      this.scale = scale;
-    }
+  @Nullable
+  public int getSize() {
+    return size;
+  }
 
-    public String getName() {
-      return name;
-    }
+  @Nullable
+  public boolean isCustomField() {
+    return isCustomField;
+  }
 
-    public String getType() {
-      return type;
-    }
+  @Nullable
+  public int getPrecision() {
+    return precision;
+  }
 
-    public int getSize() {
-      return size;
-    }
+  @Nullable
+  public int getScale() {
+    return scale;
+  }
 
-    public String getAllowedValues() {
-      return allowedValues;
-    }
+  @Nullable
+  public boolean isPrimaryKey() {
+    return isPrimaryKey;
+  }
 
-    public boolean isCustomField() {
-      return isCustomField;
-    }
-
-    public int getPrecision() {
-      return precision;
-    }
-
-    public int getScale() {
-      return scale;
-    }
+  @Nullable
+  public List<AribaColumnMetadata> getChildList() {
+    return childList;
   }
 
   /**
    * Helper class to simplify {@link AribaColumnMetadata} class creation.
    */
   public static class Builder {
-    private String documentType;
-    private List<ColumnDetails> columnDetails;
+    private String viewTemplateName;
+    private String name;
+    private String type;
+    private Integer size;
+    private Boolean isCustomField;
+    private int precision;
+    private int scale;
+    private boolean isPrimaryKey;
+    private List<AribaColumnMetadata> childList;
 
-    public Builder documentType(String documentType) {
-      this.documentType = documentType;
+    public Builder viewTemplateName(String viewTemplateName) {
+      this.viewTemplateName = viewTemplateName;
       return this;
     }
 
-    public Builder columnDetails(List<ColumnDetails> columnDetails) {
-      this.columnDetails = columnDetails;
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public Builder size(@Nullable Integer size) {
+      this.size = size;
+      return this;
+    }
+
+    public Builder type(String type) {
+      this.type = type;
+      return this;
+    }
+
+    public Builder isCustomField(Boolean isCustomField) {
+      this.isCustomField = isCustomField;
+      return this;
+    }
+
+    public Builder precision(@Nullable Integer precision) {
+      this.precision = precision;
+      return this;
+    }
+
+    public Builder scale(@Nullable Integer scale) {
+      this.scale = scale;
+      return this;
+    }
+
+    public Builder isPrimaryKey(@Nullable Boolean isPrimaryKey) {
+      this.isPrimaryKey = isPrimaryKey;
+      return this;
+    }
+
+    public Builder childList(@Nullable List<AribaColumnMetadata> childList) {
+      this.childList = childList;
       return this;
     }
 
     public AribaColumnMetadata build() {
-      return new AribaColumnMetadata(this.documentType, this.columnDetails);
+      return new AribaColumnMetadata(this.viewTemplateName, this.name, this.type, this.size, this.isCustomField,
+                                     this.precision, this.scale, this.isPrimaryKey, this.childList);
     }
   }
 }

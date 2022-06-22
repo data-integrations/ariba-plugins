@@ -16,6 +16,8 @@
 
 package io.cdap.plugin.ariba.source.metadata;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import javax.annotation.Nullable;
@@ -61,9 +63,12 @@ public class AribaResponseContainer {
    * Helper class to simplify {@link AribaResponseContainer} class creation.
    */
   public static class Builder {
-    private int httpStatusCode;
-    private String httpStatusMsg;
-    private byte[] responseStream;
+    @VisibleForTesting
+    int httpStatusCode;
+    @VisibleForTesting
+    String httpStatusMsg;
+    @VisibleForTesting
+    byte[] responseStream;
 
     public Builder httpStatusCode(int httpStatusCode) {
       this.httpStatusCode = httpStatusCode;
