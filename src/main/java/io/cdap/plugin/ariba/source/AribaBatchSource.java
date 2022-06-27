@@ -52,7 +52,7 @@ import javax.annotation.Nullable;
 
 @Plugin(type = BatchSource.PLUGIN_TYPE)
 @Name(AribaBatchSource.NAME)
-@Description("Reads data from Sap Ariba.")
+@Description("Reads data from SAP Ariba.")
 public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
 
   public static final String NAME = "Ariba";
