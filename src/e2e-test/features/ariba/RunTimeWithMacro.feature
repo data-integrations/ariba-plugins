@@ -42,12 +42,12 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Connect source as "Ariba" and sink as "BigQueryTable" to establish connection
     And Save the pipeline
     And Preview and run the pipeline
-    And Enter runtime argument value "admin.apiendpoint" for key "apiendpoint"
-    And Enter runtime argument value "admin.realm" for key "realm"
-    And Enter runtime argument value "ariba.viewtemplatename" for key "viewTemplateName"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.apiKey" for key "apiKey"
+    And Enter runtime argument value from environment variable "admin.apiendpoint" for key "apiendpoint"
+    And Enter runtime argument value from environment variable "admin.realm" for key "realm"
+     And Enter runtime argument value "ariba.viewtemplatename" for key "viewTemplateName"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.apiKey" for key "apiKey"
     And Run the preview of pipeline with runtime arguments
     And Verify the preview of pipeline is "successfully"
 
@@ -75,12 +75,12 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Connect source as "Ariba" and sink as "BigQueryTable" to establish connection
     And Save and Deploy Pipeline
     And Run the Pipeline in Runtime
-    And Enter runtime argument value "admin.apiendpoint" for key "apiendpoint"
-    And Enter runtime argument value "admin.realm" for key "realm"
+    And Enter runtime argument value from environment variable "admin.apiendpoint" for key "apiendpoint"
+    And Enter runtime argument value from environment variable "admin.realm" for key "realm"
     And Enter runtime argument value "ariba.viewtemplatename" for key "viewTemplateName"
-    And Enter runtime argument value "admin.clientid" for key "clientId"
-    And Enter runtime argument value "admin.clientsecret" for key "clientSecret"
-    And Enter runtime argument value "admin.apiKey" for key "apiKey"
+    And Enter runtime argument value from environment variable "admin.clientid" for key "clientId"
+    And Enter runtime argument value from environment variable "admin.clientsecret" for key "clientSecret"
+    And Enter runtime argument value from environment variable "admin.apiKey" for key "apiKey"
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Succeeded"
@@ -93,13 +93,13 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "ProjectFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "fromDate" and set the value to: "fromDate"
     And Click on the Macro button of Property: "toDate" and set the value to: "toDate"
     And Validate "Ariba" plugin properties
@@ -124,13 +124,13 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "RequisitionLineItemFactSystemView"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "fromDate" and set the value to: "fromDate"
     And Click on the Macro button of Property: "toDate" and set the value to: "toDate"
     And Validate "Ariba" plugin properties
@@ -157,13 +157,13 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Click on the Macro button of Property: "viewTemplateName" and set the value to: "viewTemplateName"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Validate "Ariba" plugin properties
     And Close the Plugin Properties page
     And Select Sink plugin: "BigQueryTable" from the plugins list
@@ -178,7 +178,9 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Failed"
-    Then Open Pipeline logs and verify Log entry having Level as: "ERROR" and Message as: "invalid.viewtemplate.logsmessage"
+    Then Open Pipeline logs and verify Log entries having below listed Level and Message:
+      | Level | Message                                   |
+      | ERROR | invalid.viewtemplate.logsmessage          |
 
   @BATCH-TS-ARIBA-RNTM-MACRO-06 @BQ_SINK_TEST
   Scenario: Verify pipeline failure message in logs when user provides invalid Realm with Macros
@@ -187,13 +189,12 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "viewTemplateName" with value: "ariba.viewtemplatename"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Click on the Macro button of Property: "realm" and set the value to: "realm"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Validate "Ariba" plugin properties
     And Close the Plugin Properties page
     And Select Sink plugin: "BigQueryTable" from the plugins list
@@ -208,7 +209,9 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Failed"
-    Then Open Pipeline logs and verify Log entry having Level as: "ERROR" and Message as: "invalid.realm.logsmessage"
+    Then Open Pipeline logs and verify Log entries having below listed Level and Message:
+      | Level | Message                                   |
+      | ERROR | invalid.realm.logsmessage                 |
 
   @BATCH-TS-ARIBA-RNTM-MACRO-07 @BQ_SINK_TEST
   Scenario: Verify pipeline failure message in logs when user provides invalid Credential Details with Macros
@@ -217,13 +220,13 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
-    And Enter input plugin property: "viewTemplateName" with value: "ariba.viewtemplatename"
     And Click on the Macro button of Property: "clientId" and set the value to: "clientId"
     And Click on the Macro button of Property: "clientSecret" and set the value to: "clientSecret"
     And Click on the Macro button of Property: "apiKey" and set the value to: "apiKey"
+    And Enter input plugin property: "viewTemplateName" with value: "ariba.viewtemplatename"
     And Validate "Ariba" plugin properties
     And Close the Plugin Properties page
     And Select Sink plugin: "BigQueryTable" from the plugins list
@@ -240,7 +243,9 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Failed"
-    Then Open Pipeline logs and verify Log entry having Level as: "ERROR" and Message as: "invalid.credentials.logsmessage"
+    Then Open Pipeline logs and verify Log entries having below listed Level and Message:
+      | Level | Message                                   |
+      | ERROR | invalid.credentials.logsmessage           |
 
   @BATCH-TS-ARIBA-RNTM-MACRO-08 @BQ_SINK_TEST
   Scenario: Verify pipeline failure message in logs when user provides invalid Advanced Properties with Macros
@@ -249,13 +254,13 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
-    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint"
-    And Enter input plugin property: "realm" with value: "admin.realm"
+    And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
+    And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "ariba.viewtemplatename"
-    And Enter input plugin property: "clientId" with value: "admin.clientid"
-    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret"
-    And Enter input plugin property: "apiKey" with value: "admin.apiKey"
+    And Enter input plugin property: "clientId" with value: "admin.clientid" for Credentials and Authorization related fields
+    And Enter input plugin property: "clientSecret" with value: "admin.clientsecret" for Credentials and Authorization related fields
+    And Enter input plugin property: "apiKey" with value: "admin.apiKey" for Credentials and Authorization related fields
     And Click on the Macro button of Property: "fromDate" and set the value to: "fromDate"
     And Click on the Macro button of Property: "toDate" and set the value to: "toDate"
     And Validate "Ariba" plugin properties
@@ -273,7 +278,9 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Run the Pipeline in Runtime with runtime arguments
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Failed"
-    Then Open Pipeline logs and verify Log entry having Level as: "ERROR" and Message as: "invalid.dateformat.logsmessage"
+    Then Open Pipeline logs and verify Log entries having below listed Level and Message:
+      | Level | Message                                   |
+      | ERROR | invalid.dateformat.logsmessage            |
 
 
 

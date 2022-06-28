@@ -549,6 +549,23 @@
               <includes>
                 <include>TestRunner.java</include>
               </includes>
+              <environmentVariables>
+                <ARIBA_CLIENT_ID>
+                  ${ARIBA_CLIENT_ID}
+                </ARIBA_CLIENT_ID>
+                <ARIBA_CLIENT_SECRET>
+                  ${ARIBA_CLIENT_SECRET}
+                </ARIBA_CLIENT_SECRET>
+                <ARIBA_API_KEY>
+                  ${ARIBA_API_KEY}
+                </ARIBA_API_KEY>
+                <ARIBA_API_ENDPOINT>
+                  ${ARIBA_API_ENDPOINT}
+                </ARIBA_API_ENDPOINT>
+                <ARIBA_REALM>
+                  ${ARIBA_REALM}
+                </ARIBA_REALM>
+              </environmentVariables>
             </configuration>
             <executions>
               <execution>
