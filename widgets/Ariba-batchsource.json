@@ -2,7 +2,7 @@
   "metadata": {
     "spec-version": "1.5"
   },
-  "display-name": "Ariba",
+  "display-name": "SAP Ariba",
   "configuration-groups": [
     {
       "label": "Basic",
@@ -20,7 +20,7 @@
           "label": "API Endpoint",
           "name": "baseURL",
           "widget-attributes": {
-            "placeholder": "Specify the base Path of Ariba API.  E.g. : https://sandbox.api.sap.com"
+            "placeholder": "Base path of the Ariba API, for example, https://sandbox.api.sap.com"
           }
         },
         {
@@ -33,7 +33,7 @@
             "options": [
               {
                 "id": "prod",
-                "label": "Prod"
+                "label": "Production"
               },
               {
                 "id": "sandbox",
@@ -47,7 +47,7 @@
           "label": "Realm",
           "name": "realm",
           "widget-attributes": {
-            "placeholder": "Specify the realm name for the customer. E.g. : S4SVAll"
+            "placeholder": "Realm name from which the data is to be extracted, for example, S4VALL."
           }
         },
         {
@@ -55,7 +55,7 @@
           "label": "View Template Name",
           "name": "viewTemplateName",
           "widget-attributes": {
-            "placeholder": "Specify the name of the view template you wish to create. E.g. : RequestFactSystemView"
+            "placeholder": "Name of the view template from which data is to be extracted, for example, RequestFactSystemView."
           }
         }
       ]
@@ -68,7 +68,7 @@
           "label": "Ariba Client ID",
           "name": "clientId",
           "widget-attributes": {
-            "placeholder": "Client Id"
+            "placeholder": "Ariba Client ID"
           }
         },
         {
@@ -76,7 +76,7 @@
           "label": "Ariba Client Secret",
           "name": "clientSecret",
           "widget-attributes": {
-            "placeholder": "Client Secret"
+            "placeholder": "Ariba Client Secret"
           }
         },
         {
@@ -97,7 +97,7 @@
           "label": "From Date",
           "name": "fromDate",
           "widget-attributes": {
-            "placeholder": "Start date of the extract. E.g. 2021-12-01T00:00:00Z"
+            "placeholder": "Start date of the extraction, for example, 2021-12-01T00:00:00Z."
           }
         },
         {
@@ -105,7 +105,7 @@
           "label": "To Date",
           "name": "toDate",
           "widget-attributes": {
-            "placeholder": "End date of the extract. E.g. 2022-03-29T00:00:00Z"
+            "placeholder": "End date of the extraction, for example, 2022-03-29T00:00:00Z."
           }
         }
       ]

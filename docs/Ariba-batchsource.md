@@ -23,21 +23,21 @@ You can configure the following properties for the Ariba.
 
 **Reference Name:** Name used to uniquely identify this source for lineage,
 annotating metadata, etc.  
-**API Endpoint (M)**: Ariba Base URL.  
-**System Type**: Select system either Prod or Sandbox.  
-**Realm (M)**: Realm name of the customer.   
-**View Template Name (M)**: Name of the Template.
+**API Endpoint (M)**: Base path of the Ariba API, for example, https://sandbox.api.sap.com.  
+**System Type**: Type of system the Ariba instance is running on: Production or Sandbox.  
+**Realm (M)**: Realm name from which the data is to be extracted, for example, S4VALL.   
+**View Template Name (M)**: Name of the view template from which data is to be extracted, for example, RequestFactSystemView.
 
 ## OAuth Credentials:
 
-**Ariba Client ID (M)**: Ariba client id.  
-**Ariba Client Secret (M)**: Ariba client secret.  
-**Ariba API Key (M)**: Ariba application key.
+**Ariba Client ID (M)**: Ariba Client ID.  
+**Ariba Client Secret (M)**: Ariba Client Secret.  
+**Ariba API Key (M)**: Ariba API Key.
 
 ## Advance Option:
 
-**From Date (M, O)**: Date from which the data need to be fetched. e.g. 2021-12-01T00:00:00Z  
-**To Date (M, O)**: Date to which the extraction will be done. e.g."2022-03-29T00:00:00Z"
+**From Date (M, O)**: Start date of the extraction, for example, "2021-12-01T00:00:00Z".  
+**To Date (M, O)**: End date of the extraction, for example, "2022-03-29T00:00:00Z".
 
 
 Data Types Mapping
@@ -49,4 +49,7 @@ Data Types Mapping
     | boolean                        | boolean               |                                                    |
     | string                         | string                |                                                    |
     | date                           | timestamp_micros      |                                                    |
+    | array                          | array                 |                                                    |
+    | object                         | record                |                                                    |
+
   

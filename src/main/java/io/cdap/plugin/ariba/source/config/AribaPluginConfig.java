@@ -59,15 +59,15 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   @Description("Base Path of Ariba API.")
   private final String baseURL;
 
-  @Description("Select System either prod/sandbox.")
+  @Description("Type of system the Ariba instance is running on: Production or Sandbox.")
   private final String systemType;
 
   @Macro
-  @Description("Realm name for the customer.")
+  @Description("Realm name from which data is to be extracted.")
   private final String realm;
 
   @Macro
-  @Description("Name of the view template you wish to create.")
+  @Description("Name of the view template from which data is to be extracted.")
   private final String viewTemplateName;
 
   /**
@@ -75,15 +75,15 @@ public class AribaPluginConfig extends ReferencePluginConfig {
    */
 
   @Macro
-  @Description("Client Id.")
+  @Description("Ariba Client ID.")
   private final String clientId;
 
   @Macro
-  @Description("Client Secret.")
+  @Description("Ariba Client Secret.")
   private final String clientSecret;
 
   @Macro
-  @Description("API Key.")
+  @Description("Ariba Application Key.")
   private final String apiKey;
 
   /**
