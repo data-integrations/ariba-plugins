@@ -17,52 +17,50 @@
         },
         {
           "widget-type": "textbox",
-          "label": "API Endpoint",
-          "name": "baseURL",
-          "widget-attributes": {
-            "placeholder": "Base path of the Ariba API, for example, https://sandbox.api.sap.com"
-          }
-        },
-        {
-          "widget-type": "radio-group",
-          "label": "System Type",
-          "name": "systemType",
-          "widget-attributes": {
-            "layout": "inline",
-            "default": "prod",
-            "options": [
-              {
-                "id": "prod",
-                "label": "Production"
-              },
-              {
-                "id": "sandbox",
-                "label": "Sandbox"
-              }
-            ]
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "Realm",
-          "name": "realm",
-          "widget-attributes": {
-            "placeholder": "Realm name from which the data is to be extracted, for example, S4VALL."
-          }
-        },
-        {
-          "widget-type": "textbox",
           "label": "View Template Name",
           "name": "viewTemplateName",
           "widget-attributes": {
             "placeholder": "Name of the view template from which data is to be extracted, for example, RequestFactSystemView."
           }
+        },
+        {
+          "label": "browse",
+          "widget-type": "connection-browser",
+          "widget-category": "plugin",
+          "widget-attributes": {
+            "connectionType": "ARIBA",
+            "label": "Browse"
+          }
         }
       ]
     },
     {
-      "label": "Credentials",
+      "label": "Connection",
       "properties": [
+        {
+          "widget-type": "toggle",
+          "label": "Use connection",
+          "name": "useConnection",
+          "widget-attributes": {
+            "on": {
+              "value": "true",
+              "label": "YES"
+            },
+            "off": {
+              "value": "false",
+              "label": "NO"
+            },
+            "default": "false"
+          }
+        },
+        {
+          "widget-type": "connection-select",
+          "label": "Connection",
+          "name": "connection",
+          "widget-attributes": {
+            "connectionType": "Ariba"
+          }
+        },
         {
           "widget-type": "textbox",
           "label": "Ariba Client ID",
@@ -86,6 +84,41 @@
           "widget-attributes": {
             "placeholder": "Use any Application Key of an Application(s) you created in developer portal."
           }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "API Endpoint",
+          "name": "baseURL",
+          "widget-attributes": {
+            "placeholder": "Base path of the Ariba API, for example, https://sandbox.api.sap.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Realm",
+          "name": "realm",
+          "widget-attributes": {
+            "placeholder": "Realm name from which the data is to be extracted, for example, S4VALL."
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "label": "System Type",
+          "name": "systemType",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "prod",
+            "options": [
+              {
+                "id": "prod",
+                "label": "Production"
+              },
+              {
+                "id": "sandbox",
+                "label": "Sandbox"
+              }
+            ]
+          }
         }
       ]
     },
@@ -107,6 +140,52 @@
           "widget-attributes": {
             "placeholder": "End date of the extraction, for example, 2022-03-29T00:00:00Z."
           }
+        }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "name": "showConnectionProperties ",
+      "condition": {
+        "expression": "useConnection == false"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "clientId"
+        },
+        {
+          "type": "property",
+          "name": "clientSecret"
+        },
+        {
+          "type": "property",
+          "name": "apiKey"
+        },
+        {
+          "type": "property",
+          "name": "baseURL"
+        },
+        {
+          "type": "property",
+          "name": "realm"
+        },
+        {
+          "type": "property",
+          "name": "systemType"
+        }
+      ]
+    },
+    {
+      "name": "showConnectionId",
+      "condition": {
+        "expression": "useConnection == true"
+      },
+      "show": [
+        {
+          "type": "property",
+          "name": "connection"
         }
       ]
     }

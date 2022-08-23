@@ -17,23 +17,142 @@
 package io.cdap.plugin.ariba.source.metadata.proto;
 
 import com.google.gson.Gson;
-import io.cdap.cdap.etl.mock.common.MockPipelineConfigurer;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.batch.BatchSource;
+import io.cdap.cdap.etl.api.connector.ConnectorContext;
+import io.cdap.cdap.etl.api.connector.ConnectorSpec;
+import io.cdap.cdap.etl.api.connector.ConnectorSpecRequest;
+import io.cdap.cdap.etl.api.connector.PluginSpec;
+import io.cdap.cdap.etl.api.validation.ValidationException;
+import io.cdap.cdap.etl.mock.common.MockConnectorConfigurer;
+import io.cdap.cdap.etl.mock.common.MockConnectorContext;
+import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
+import io.cdap.plugin.ariba.source.AribaBatchSource;
 import io.cdap.plugin.ariba.source.AribaServices;
 import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
+import io.cdap.plugin.ariba.source.connector.AribaConnector;
+import io.cdap.plugin.ariba.source.connector.AribaConnectorConfig;
+import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.metadata.AribaColumnMetadata;
+import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
+import io.cdap.plugin.common.ConfigUtil;
+import mockit.Expectations;
+import mockit.Mocked;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 public class PropertiesTest {
 
-  private AribaPluginConfig pluginConfig;
+  private static final Set<String> SUPPORTED_TYPES = new HashSet<>(Arrays.asList("TABLE", "VIEW"));
   private final Gson gson = new Gson();
+  @Mocked
+  AribaResponseContainer response;
+  String jsonNode = "{\n" +
+    "  \"type\": \"object\",\n" +
+    "  \"access_token\": \"jiuokiopu\",\n" +
+    "  \"status\": \"completed\",\n" +
+    "  \"totalNumOfPages\": \"1\",\n" +
+    "  \"currentPageNum\": \"1\",\n" +
+    "  \"message\": \"test\",\n" +
+    "  \"properties\": {\n" +
+    "    \"IsTestProject\": {\n" +
+    "      \"title\": \"IsTestProject\",\n" +
+    "      \"type\": [\n" +
+    "        \"boolean\",\n" +
+    "        \"null\"\n" +
+    "      ],\n" +
+    "      \"precision\": null,\n" +
+    "      \"scale\": null,\n" +
+    "      \"size\": null,\n" +
+    "      \"allowedValues\": null\n" +
+    "    },\n" +
+    "   \"Owner\": {\n" +
+    "      \"type\": [\n" +
+    "        \"object\",\n" +
+    "        \"null\"\n" +
+    "      ],\n" +
+    "      \"properties\": {\n" +
+    "        \"SourceSystem\": {\n" +
+    "          \"title\": \"Owner.SourceSystem\",\n" +
+    "          \"type\": [\n" +
+    "            \"string\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \"precision\": null,\n" +
+    "          \"scale\": null,\n" +
+    "          \"size\": 100,\n" +
+    "          \"allowedValues\": null\n" +
+    "        },\n" +
+    "        \"UserId\": {\n" +
+    "          \"title\": \"Owner.UserId\",\n" +
+    "          \"type\": [\n" +
+    "            \"string\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \"precision\": null,\n" +
+    "          \"scale\": null,\n" +
+    "          \"size\": 50,\n" +
+    "          \"allowedValues\": null\n" +
+    "        }\n" +
+    "      }\n" +
+    "    },\n" +
+    "     \"Organization\": {\n" +
+    "      \"type\": [\n" +
+    "        \"array\",\n" +
+    "        \"null\"\n" +
+    "      ],\n" +
+    "      \"items\": [\n" +
+    "        {\n" +
+    "          \"type\": [\n" +
+    "            \"object\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \"properties\": {}\n" +
+    "        },\n" +
+    "         {\n" +
+    "          \"type\": [\n" +
+    "            \"array\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \n" +
+    "  \"items\": [\n" +
+    "        {\n" +
+    "          \"type\": [\n" +
+    "            \"object\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \"properties\": {}\n" +
+    "        },\n" +
+    "        {\n" +
+    "          \"type\": [\n" +
+    "            \"array\",\n" +
+    "            \"null\"\n" +
+    "          ],\n" +
+    "          \"properties\": {}\n" +
+    "        }\n" +
+    "      ]\n" +
+    "        }\n" +
+    "        \n" +
+    "      ]\n" +
+    "    }\n" +
+    "  }\n" +
+    "}";
+  private AribaPluginConfig pluginConfig;
   private Properties properties;
+  private AribaServices aribaServices;
 
   @Before
   public void setUp() {
@@ -46,7 +165,7 @@ public class PropertiesTest {
   }
 
   @Test
-  public void testGetObjectFieldCount()  {
+  public void testGetObjectFieldCount() {
     String objectJson = "{\"type\":\"object\",\"properties\":{\"SourceSystem\":{\"type\":" +
       "[\"object\",\"null\"]," +
       "\"properties\":{\"SourceSystemId\":{\"title\":\"SourceSystem.SourceSystemId\"," +
@@ -54,7 +173,7 @@ public class PropertiesTest {
       "\"null\"],\"precision\":null,\"scale\":null,\"size\":100,\"allowedValues\":null}}}}}";
 
     AribaMetaResponse aribaMetaResponse = gson.fromJson(objectJson, AribaMetaResponse.class);
-    
+
     Map<String, ObjectFields> objectFieldsMap = Properties.getObjectFields(aribaMetaResponse.getProperties());
     Assert.assertEquals("SourceSystem.SourceSystemId",
                         objectFieldsMap.get("SourceSystem").getProperties().getAsJsonObject()
@@ -116,5 +235,93 @@ public class PropertiesTest {
     Assert.assertEquals("2", simpleFieldsMap.get("IsTestProject").getScale().toString());
     Assert.assertEquals("7.0", simpleFieldsMap.get("IsTestProject").getAllowedValues().toString());
     Assert.assertEquals(5, simpleFieldsMap.get("IsTestProject").getSize().intValue());
+  }
+
+  @Test
+  public void teatValidateFields() throws AribaException, IOException {
+    MockFailureCollector collector = new MockFailureCollector();
+    AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
+    connectorConfig.validateToken(collector);
+    collector.getOrThrowException();
+    Assert.assertEquals(0, collector.getValidationFailures().size());
+  }
+
+  private void testTest(AribaConnector connector) {
+    ConnectorContext context = new MockConnectorContext(new MockConnectorConfigurer());
+    connector.test(context);
+    ValidationException validationException = context.getFailureCollector().getOrThrowException();
+    Assert.assertTrue(validationException.getFailures().isEmpty());
+  }
+
+  @Test
+  public void test() throws IOException, AribaException, InterruptedException {
+    AribaConnector connector = new AribaConnector(new AribaConnectorConfig(pluginConfig.getConnection().getClientId()
+      , pluginConfig.getConnection().getClientSecret(), pluginConfig.getConnection().getBaseURL(),
+                                                                           pluginConfig.getConnection().getRealm(),
+                                                                           pluginConfig.getConnection().getSystemType()
+                                                                          , pluginConfig.getConnection().getApiKey()));
+    testTest(connector);
+    testGenerateSpec(connector);
+  }
+
+  private void testGenerateSpec(AribaConnector connector) throws IOException, AribaException, InterruptedException {
+
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    URL url = null;
+    InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
+    new Expectations(AribaServices.class) {
+      {
+        aribaServices.fetchAribaResponse(url, anyString);
+        result = response;
+        minTimes = 0;
+
+        response.getResponseBody();
+        result = inputStream;
+        minTimes = 0;
+
+        response.getHttpStatusCode();
+        result = 200;
+        minTimes = 0;
+
+        aribaServices.getAccessToken();
+        result = "testToken";
+        minTimes = 0;
+      }
+    };
+    AribaColumnMetadata.Builder columnDetail = AribaColumnMetadata.builder();
+    columnDetail.viewTemplateName("name2")
+      .name("name").isPrimaryKey(false).type(ResourceConstants.OBJECT).size(0)
+      .isCustomField(false).scale(0).precision(0)
+      .childList(null);
+    AribaColumnMetadata columnList = columnDetail.build();
+    List<AribaColumnMetadata> columnDetails = new ArrayList<>();
+    columnDetails.add(columnList);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    new Expectations(AribaServices.class) {
+      {
+        aribaServices.getMetadata(anyString, anyString);
+        result = columnDetails;
+        minTimes = 0;
+      }
+    };
+
+    ConnectorSpec connectorSpec = connector.generateSpec(new MockConnectorContext(new MockConnectorConfigurer()),
+                                                         ConnectorSpecRequest.builder().setPath
+                                                             (pluginConfig.getViewTemplateName())
+                                                           .setConnection("${conn(connection-id)}").build());
+
+    Schema schema = connectorSpec.getSchema();
+    for (Schema.Field field : schema.getFields()) {
+      Assert.assertNotNull(field.getSchema());
+    }
+    Set<PluginSpec> relatedPlugins = connectorSpec.getRelatedPlugins();
+    Assert.assertEquals(1, relatedPlugins.size());
+    PluginSpec pluginSpec = relatedPlugins.iterator().next();
+    Assert.assertEquals(AribaBatchSource.NAME, pluginSpec.getName());
+    Assert.assertEquals(BatchSource.PLUGIN_TYPE, pluginSpec.getType());
+
+    Map<String, String> properties = pluginSpec.getProperties();
+    Assert.assertEquals("true", properties.get(ConfigUtil.NAME_USE_CONNECTION));
+    Assert.assertEquals("${conn(connection-id)}", properties.get(ConfigUtil.NAME_CONNECTION));
   }
 }

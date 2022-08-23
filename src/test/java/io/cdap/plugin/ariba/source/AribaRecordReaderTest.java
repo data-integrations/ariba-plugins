@@ -55,8 +55,8 @@ public class AribaRecordReaderTest {
 
   @Test
   public void testInitialize() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
-    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, getPluginSchema());
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, getPluginSchema(), pluginConfig);
     AribaInputSplit aribaInputSplit = new AribaInputSplit("sourceView.zip", "3343ddsfsg3434");
     AribaStructuredTransformer aribaStructuredTransformer = new AribaStructuredTransformer();
     JsonNode nodeRecord = mapper.readTree(rowData);
@@ -84,8 +84,9 @@ public class AribaRecordReaderTest {
   @Test
   public void testNextKeyValueFalse(@Mocked AribaInputSplit aribaInputSplit,
                                     @Mocked JsonNode node) throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
-    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, pipelineConfigurer.getOutputSchema());
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, pipelineConfigurer.getOutputSchema(),
+                                                                pluginConfig);
     new Expectations(AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -111,8 +112,9 @@ public class AribaRecordReaderTest {
 
   @Test(expected = IOException.class)
   public void testInitializeError() throws IOException, InterruptedException, AribaException {
-    aribaServices = new AribaServices(pluginConfig);
-    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, pipelineConfigurer.getOutputSchema());
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    AribaRecordReader aribaRecordReader = new AribaRecordReader(aribaServices, pipelineConfigurer.getOutputSchema(),
+                                                                pluginConfig);
     AribaInputSplit aribaInputSplit = new AribaInputSplit("sourceView.zip", "3343ddsfsg3434");
     new Expectations(AribaServices.class) {
       {

@@ -18,6 +18,7 @@ package io.cdap.plugin.ariba.source;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -43,8 +44,10 @@ public class AribaRecordReader extends RecordReader<NullWritable, StructuredReco
   private int pos;
   private JsonNode row;
   private ListIterator<JsonNode> jsonNodeListIterator;
+  private final AribaPluginConfig config;
 
-  public AribaRecordReader(AribaServices aribaServices, Schema outputSchema) {
+  public AribaRecordReader(AribaServices aribaServices, Schema outputSchema, AribaPluginConfig pluginConfig) {
+    this.config = pluginConfig;
     this.aribaServices = aribaServices;
     this.outputSchema = outputSchema;
     this.transformer = new AribaStructuredTransformer();

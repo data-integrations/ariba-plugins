@@ -74,7 +74,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineWithInvalidBasicParam() {
-    pluginConfig = new AribaPluginConfig("", "",
+    pluginConfig = new AribaPluginConfig("referenceName", "",
                                          "", "",
                                          "", "clientId",
                                          "clientSecret", "apiKey",
@@ -84,23 +84,39 @@ public class AribaBatchSourceTest {
       aribaBatchSource.configurePipeline(pipelineConfigurer);
     } catch (ValidationException ve) {
       List<ValidationFailure> failures = ve.getFailures();
-      //Reference name throws 2 failure, one from our method and another from CDAP Util class.
-      //Other 4 properties are kept blank
       Assert.assertEquals("Failures size does not match", 6, failures.size());
-      Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Reference Name"),
-                          failures.get(0).getMessage());
 
       Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("API Endpoint"),
-                          failures.get(1).getMessage());
+                          failures.get(0).getMessage());
 
       Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("System Type"),
-                          failures.get(2).getMessage());
+                          failures.get(1).getMessage());
 
       Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Realm Name"),
-                          failures.get(3).getMessage());
+                          failures.get(2).getMessage());
 
       Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("View Template Name"),
-                          failures.get(4).getMessage());
+                          failures.get(3).getMessage());
+
+    }
+  }
+
+  @Test
+  public void testConfigurePipelineWithEmptyReferenceName() {
+    pluginConfig = new AribaPluginConfig("", "url",
+                                         "sysType", "realm",
+                                         "template", "clientId",
+                                         "clientSecret", "apiKey",
+                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+    try {
+      aribaBatchSource = new AribaBatchSource(pluginConfig);
+      aribaBatchSource.configurePipeline(pipelineConfigurer);
+    } catch (ValidationException ve) {
+      List<ValidationFailure> failures = ve.getFailures();
+      //Reference name throws 2 failure, one from our method and another from CDAP Util class.
+      Assert.assertEquals("Failures size does not match", 2, failures.size());
+      Assert.assertEquals(ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Reference Name"),
+                              failures.get(0).getMessage());
     }
   }
 
@@ -283,14 +299,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineSchemaNotNull() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = "testToken";
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -303,14 +319,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForException() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = new InterruptedException();
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -328,14 +344,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = new AribaException("UnAuthorized", HttpURLConnection.HTTP_UNAUTHORIZED);
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -352,14 +368,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException1() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = new AribaException("testException", HttpURLConnection.HTTP_ACCEPTED);
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -377,14 +393,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException2() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = new AribaException("Bad Request", HttpURLConnection.HTTP_BAD_REQUEST);
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -402,14 +418,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException3() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
         result = new AribaException("Not Found", HttpURLConnection.HTTP_NOT_FOUND);
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = getPluginSchema();
         minTimes = 0;
       }
@@ -527,7 +543,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testPrepareRunForNullSchema() throws Exception {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     aribaBatchSource = new AribaBatchSource(pluginConfig);
     new Expectations(AribaServices.class, AribaBatchSource.class) {
       {
@@ -539,7 +555,7 @@ public class AribaBatchSourceTest {
         result = "access_token";
         minTimes = 0;
 
-        aribaServices.buildOutputSchema(anyString);
+        aribaServices.buildOutputSchema(anyString, anyString);
         result = null;
         minTimes = 0;
       }
