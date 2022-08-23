@@ -73,7 +73,8 @@ Feature: Ariba Source - Run time scenarios
     And Run the Pipeline in Runtime
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Succeeded"
-    Then Verify count of no of records transferred to the target BigQuery Table
+    And Verify count of no of records transferred to the target BigQuery Table
+    Then Verify If new record created in Sink application for view template "SourcingProjectFactSystemView" is correct
 
   @BATCH-TS-ARIBA-DSGN-RNTM-03 @BQ_SINK_TEST
   Scenario: Verify user should be able to preview the pipeline when plugin is configured with Advanced properties
@@ -134,5 +135,6 @@ Feature: Ariba Source - Run time scenarios
     And Run the Pipeline in Runtime
     And Wait till pipeline is in running state
     And Verify the pipeline status is "Succeeded"
-    Then Verify count of no of records transferred to the target BigQuery Table
+    And Verify count of no of records transferred to the target BigQuery Table
+    Then Verify If new record created in Sink application for view template "SourcingProjectFactSystemView" is correct
 
