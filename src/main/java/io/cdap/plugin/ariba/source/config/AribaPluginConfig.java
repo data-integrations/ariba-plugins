@@ -18,9 +18,12 @@ package io.cdap.plugin.ariba.source.config;
 
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
+import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.etl.api.FailureCollector;
+import io.cdap.plugin.ariba.source.connector.AribaConnectorConfig;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
+import io.cdap.plugin.common.ConfigUtil;
 import io.cdap.plugin.common.IdUtils;
 import io.cdap.plugin.common.ReferencePluginConfig;
 import org.slf4j.Logger;
@@ -55,37 +58,26 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   /**
    * Basic parameters.
    */
-  @Macro
-  @Description("Base Path of Ariba API.")
-  private final String baseURL;
-
-  @Description("Type of system the Ariba instance is running on: Production or Sandbox.")
-  private final String systemType;
-
-  @Macro
-  @Description("Realm name from which data is to be extracted.")
-  private final String realm;
 
   @Macro
   @Description("Name of the view template from which data is to be extracted.")
   private final String viewTemplateName;
 
-  /**
-   * Credentials parameters
-   */
-
+ @Name(ConfigUtil.NAME_CONNECTION)
   @Macro
-  @Description("Ariba Client ID.")
-  private final String clientId;
+  @Nullable
+  @Description("The existing connection to use.")
+  private AribaConnectorConfig connection;
 
-  @Macro
-  @Description("Ariba Client Secret.")
-  private final String clientSecret;
+  @Name(ConfigUtil.NAME_USE_CONNECTION)
+  @Nullable
+  @Description("Whether to use an existing connection.")
+  private Boolean useConnection;
 
-  @Macro
-  @Description("Ariba Application Key.")
-  private final String apiKey;
-
+  @Nullable
+  public AribaConnectorConfig getConnection() {
+    return connection;
+  }
   /**
    * Advanced parameters
    */
@@ -113,47 +105,19 @@ public class AribaPluginConfig extends ReferencePluginConfig {
                            @Nullable String toDate) {
 
     super(referenceName);
-    this.baseURL = baseURL;
-    this.systemType = systemType;
-    this.realm = realm;
     this.viewTemplateName = viewTemplateName;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.apiKey = apiKey;
+    this.connection = new AribaConnectorConfig(clientId, clientSecret, apiKey, baseURL, realm, systemType);
     this.fromDate = fromDate;
     this.toDate = toDate;
   }
 
-  public String getSystemType() {
-    return systemType;
-  }
-
-  public String getRealm() {
-    return realm;
-  }
 
   public String getViewTemplateName() {
     return viewTemplateName;
   }
 
-  public String getClientId() {
-    return clientId;
-  }
-
-  public String getClientSecret() {
-    return clientSecret;
-  }
-
-  public String getApiKey() {
-    return apiKey;
-  }
-
   public String getReferenceName() {
     return this.referenceName;
-  }
-
-  public String getBaseURL() {
-    return trim(this.baseURL);
   }
 
   @Nullable
@@ -180,8 +144,9 @@ public class AribaPluginConfig extends ReferencePluginConfig {
     IdUtils.validateReferenceName(referenceName, failureCollector);
 
     LOG.debug("Validating Security Type parameters.");
-    validateCredentials(failureCollector);
-
+    if (getConnection() != null) {
+      getConnection().validateCredentials(failureCollector);
+    }
     LOG.debug("Validating the advanced parameters.");
     if (AribaUtil.isNotNullOrEmpty(fromDate) || AribaUtil.isNotNullOrEmpty(toDate)) {
       validateAdvanceParameters(failureCollector);
@@ -202,15 +167,15 @@ public class AribaPluginConfig extends ReferencePluginConfig {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.REFERENCE_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(REFERENCE_NAME);
     }
-    if (AribaUtil.isNullOrEmpty(getBaseURL()) && !containsMacro(BASE_URL)) {
+    if (AribaUtil.isNullOrEmpty(getConnection().getBaseURL()) && !containsMacro(BASE_URL)) {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.API_END_POINT);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(BASE_URL);
     }
-    if (AribaUtil.isNullOrEmpty(getSystemType()) && !containsMacro(SYSTEM_TYPE)) {
+    if (AribaUtil.isNullOrEmpty(getConnection().getSystemType()) && !containsMacro(SYSTEM_TYPE)) {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.SYSTEM_TYPE);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(SYSTEM_TYPE);
     }
-    if (AribaUtil.isNullOrEmpty(getRealm()) && !containsMacro(REALM)) {
+    if (AribaUtil.isNullOrEmpty(getConnection().getRealm()) && !containsMacro(REALM)) {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.REALM_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(REALM);
     }
@@ -219,28 +184,6 @@ public class AribaPluginConfig extends ReferencePluginConfig {
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(TEMPLATE_NAME);
     }
   }
-
-  /**
-   * Validates the credentials parameters.
-   *
-   * @param failureCollector {@code FailureCollector}
-   */
-  private void validateCredentials(FailureCollector failureCollector) {
-
-    if (AribaUtil.isNullOrEmpty(getClientId()) && !containsMacro(CLIENT_ID)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Ariba Client Id");
-      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(CLIENT_ID);
-    }
-    if (AribaUtil.isNullOrEmpty(getClientSecret()) && !containsMacro(CLIENT_SECRET)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Ariba Client Secret");
-      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(CLIENT_SECRET);
-    }
-    if (AribaUtil.isNullOrEmpty(getApiKey()) && !containsMacro(APIKEY)) {
-      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey("Ariba API Key");
-      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(APIKEY);
-    }
-  }
-
   /**
    * Validates the advance parameters.
    *
@@ -302,16 +245,4 @@ public class AribaPluginConfig extends ReferencePluginConfig {
       && !containsMacro(CLIENT_SECRET) && !containsMacro(APIKEY);
   }
 
-  /**
-   * Trim whitespace from the beginning and end of a string.
-   *
-   * @param rawString
-   * @return trimmed String or null
-   */
-  private String trim(String rawString) {
-    if (AribaUtil.isNotNullOrEmpty(rawString)) {
-      return rawString.trim();
-    }
-    return rawString;
-  }
 }

@@ -54,7 +54,7 @@ public class AribaInputFormat extends InputFormat<NullWritable, StructuredRecord
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException {
     AribaPluginConfig pluginConfig = getPluginConfig(jobContext);
-    AribaServices aribaServices = new AribaServices(pluginConfig);
+    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection());
     boolean previewEnabled = Boolean.parseBoolean(jobContext.getConfiguration().
                                                     get(ResourceConstants.IS_PREVIEW_ENABLED));
 
@@ -66,9 +66,9 @@ public class AribaInputFormat extends InputFormat<NullWritable, StructuredRecord
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit, TaskAttemptContext
     taskAttemptContext) throws IOException {
     AribaPluginConfig pluginConfig = getPluginConfig(taskAttemptContext);
-    AribaServices aribaServices = new AribaServices(pluginConfig);
+    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection());
     Schema outputSchema = Schema.parseJson(taskAttemptContext.getConfiguration().get(ResourceConstants.OUTPUT_SCHEMA));
-    return new AribaRecordReader(aribaServices, outputSchema);
+    return new AribaRecordReader(aribaServices, outputSchema, pluginConfig);
   }
 
   private AribaPluginConfig getPluginConfig(JobContext taskAttemptContext) {
@@ -95,7 +95,7 @@ public class AribaInputFormat extends InputFormat<NullWritable, StructuredRecord
     String jobId;
 
     try {
-      JsonNode createJobResponse = aribaServices.createJob(pluginConfig, pageToken);
+      JsonNode createJobResponse = aribaServices.createJob(pluginConfig, pageToken, pluginConfig.getViewTemplateName());
       jobId = createJobResponse.get(ResourceConstants.JOB_ID).asText();
     } catch (AribaException | InterruptedException exception) {
       throw new IOException(exception.getMessage(), exception);

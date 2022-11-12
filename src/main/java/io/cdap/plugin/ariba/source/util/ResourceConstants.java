@@ -85,8 +85,12 @@ public enum ResourceConstants {
   public static final String INVALID_TIME_VALUE = "240000";
   public static final String TOTAL_PAGES = "totalNumOfPages";
   public static final String CURRENT_PAGE = "currentPageNum";
+  public static final String PRODUCT = "product";
+  public static final String REALM = "realm";
+  public static final String ANALYTICS = "analytics";
 
   public static final Integer DEFAULT_CODE = 1500;
+  public static final String PLUGIN_NAME = "Ariba";
   private final String code;
   private final String key;
 

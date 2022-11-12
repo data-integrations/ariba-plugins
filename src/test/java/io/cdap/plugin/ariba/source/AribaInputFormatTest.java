@@ -69,7 +69,7 @@ public class AribaInputFormatTest {
     JsonNode jobData = objectMapper.readTree(createJobResponse1);
     new Expectations(AribaServices.class) {
       {
-        aribaServices.createJob(pluginConfig, anyString);
+        aribaServices.createJob(pluginConfig, anyString, anyString);
         result = createJob;
         minTimes = 0;
 
@@ -103,7 +103,7 @@ public class AribaInputFormatTest {
     JsonNode jobData = objectMapper.readTree(createJobResponse1);
     new Expectations(AribaServices.class) {
       {
-        aribaServices.createJob(pluginConfig, anyString);
+        aribaServices.createJob(pluginConfig, anyString, anyString);
         result = new AribaException("limit exceed", 429);
         minTimes = 0;
 
@@ -140,7 +140,7 @@ public class AribaInputFormatTest {
     JsonNode crateJob = objectMapper.readTree(createJobResponse);
     new Expectations(AribaServices.class) {
       {
-        aribaServices.createJob(pluginConfig, anyString);
+        aribaServices.createJob(pluginConfig, anyString, anyString);
         result = crateJob;
         minTimes = 0;
 
@@ -178,7 +178,7 @@ public class AribaInputFormatTest {
     JsonNode jobData = objectMapper.readTree(createJobResponse1);
     new Expectations(AribaServices.class) {
       {
-        aribaServices.createJob(pluginConfig, anyString);
+        aribaServices.createJob(pluginConfig, anyString, anyString);
         result = new InterruptedException("InterruptedException");
         minTimes = 0;
 
@@ -215,7 +215,7 @@ public class AribaInputFormatTest {
     JsonNode crateJob = objectMapper.readTree(createJobResponse);
     new Expectations(AribaServices.class) {
       {
-        aribaServices.createJob(pluginConfig, anyString);
+        aribaServices.createJob(pluginConfig, anyString, anyString);
         result = crateJob;
         minTimes = 0;
 

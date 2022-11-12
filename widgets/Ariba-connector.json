@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "display-name": "Ariba",
+  "configuration-groups": [
+    {
+      "label": "Credentials-updated",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Ariba Client ID",
+          "name": "clientId",
+          "widget-attributes": {
+            "placeholder": "Ariba Client ID"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Ariba Client Secret",
+          "name": "clientSecret",
+          "widget-attributes": {
+            "placeholder": "Ariba Client Secret"
+          }
+        },
+        {
+          "widget-type": "password",
+          "label": "Ariba API Key",
+          "name": "apiKey",
+          "widget-attributes": {
+            "placeholder": "Use any Application Key of an Application(s) you created in developer portal."
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "API Endpoint",
+          "name": "baseURL",
+          "widget-attributes": {
+            "placeholder": "Base path of the Ariba API, for example, https://sandbox.api.sap.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Realm",
+          "name": "realm",
+          "widget-attributes": {
+            "placeholder": "Realm name from which the data is to be extracted, for example, S4VALL."
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "label": "System Type",
+          "name": "systemType",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "prod",
+            "options": [
+              {
+                "id": "prod",
+                "label": "Production"
+              },
+              {
+                "id": "sandbox",
+                "label": "Sandbox"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": []
+}

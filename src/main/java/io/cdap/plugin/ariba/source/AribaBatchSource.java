@@ -19,6 +19,8 @@ package io.cdap.plugin.ariba.source;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import io.cdap.cdap.api.annotation.Description;
+import io.cdap.cdap.api.annotation.Metadata;
+import io.cdap.cdap.api.annotation.MetadataProperty;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.batch.Input;
@@ -28,7 +30,9 @@ import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
+import io.cdap.cdap.etl.api.connector.Connector;
 import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
+import io.cdap.plugin.ariba.source.connector.AribaConnector;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
@@ -53,6 +57,7 @@ import javax.annotation.Nullable;
 @Plugin(type = BatchSource.PLUGIN_TYPE)
 @Name(AribaBatchSource.NAME)
 @Description("Reads data from SAP Ariba.")
+@Metadata(properties = {@MetadataProperty(key = Connector.PLUGIN_TYPE, value = ResourceConstants.PLUGIN_NAME)})
 public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord, StructuredRecord> {
 
   public static final String NAME = "Ariba";
@@ -64,7 +69,7 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
 
   public AribaBatchSource(AribaPluginConfig pluginConfig) {
     this.pluginConfig = pluginConfig;
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
   }
 
   @Override
@@ -115,7 +120,7 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
   private Schema getOutputSchema() throws IOException, AribaException, InterruptedException {
     String token = aribaServices.getAccessToken();
     LOG.trace("Initiating Metadata Call To Ariba");
-    return aribaServices.buildOutputSchema(token);
+    return aribaServices.buildOutputSchema(token, pluginConfig.getViewTemplateName());
   }
 
   private void setJobForDataRead(BatchSourceContext context, Schema outputSchema) throws IOException {

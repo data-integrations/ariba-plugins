@@ -159,7 +159,7 @@ public class AribaServicesTest {
 
   @Test
   public void testGetAccessToken() throws AribaException, IOException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
 
     String tokenUrl = String.format("https://%s", "https://api.au.cloud.ariba.com/v2/oauth/token");
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(tokenUrl))
@@ -193,14 +193,14 @@ public class AribaServicesTest {
 
   @Test
   public void testGenerateTokenURL() throws AribaException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Assert.assertEquals("https://api.au.cloud.ariba.com/v2/oauth/token",
                         aribaServices.generateTokenURL().toString());
   }
 
   @Test
   public void testCallAribaForTokenForError() throws IOException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     String tokenUrl = String.format("https://%s", "https://api.au.cloud.ariba.com/v2/oauth/token");
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(tokenUrl))
       .newBuilder().addPathSegments("TOKEN_PATH");
@@ -230,22 +230,22 @@ public class AribaServicesTest {
     AribaColumnMetadata columnList = columnDetail.build();
     List<AribaColumnMetadata> columnDetails = new ArrayList<>();
     columnDetails.add(columnList);
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaServices.class) {
       {
-        aribaServices.getMetadata(anyString);
+        aribaServices.getMetadata(anyString, anyString);
         result = columnDetails;
         minTimes = 0;
       }
     };
-    aribaServices.buildOutputSchema("token");
+    aribaServices.buildOutputSchema("token", "template");
     AribaSchemaGenerator aribaSchemaGenerator = new AribaSchemaGenerator(Collections.singletonList(columnList));
     Assert.assertEquals("RECORD", aribaSchemaGenerator.buildSchema().getType().toString());
   }
 
   @Test
   public void testGetMetadata() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
     new Expectations(AribaServices.class) {
@@ -268,13 +268,14 @@ public class AribaServicesTest {
       }
     };
 
-    List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getMetadata("token");
+    List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getMetadata("token",
+                                                                              "template");
     Assert.assertEquals(2, aribaColumnMetadata.size());
   }
 
   @Test
   public void testGetMetadataWithError() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
     AribaResponseContainer responseContainer = new AribaResponseContainer(404,
                                                                           "URL not forund", null);
@@ -299,7 +300,8 @@ public class AribaServicesTest {
       }
     };
     try {
-      List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getMetadata("token");
+      List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getMetadata("token",
+                                                                                "template");
       Assert.fail("testGetMetadataWithError expected to fail, but succeeded");
     } catch (AribaException aib) {
       Assert.assertEquals("test", aib.getMessage());
@@ -308,7 +310,7 @@ public class AribaServicesTest {
 
   @Test
   public void testFetchAribaResponse() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
@@ -337,7 +339,7 @@ public class AribaServicesTest {
 
   @Test
   public void testCreateJob() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request re = null;
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
@@ -355,7 +357,7 @@ public class AribaServicesTest {
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
     new Expectations(AribaServices.class) {
       {
-        aribaServices.buildJobRequest((URL) any, pluginConfig);
+        aribaServices.buildJobRequest((URL) any, pluginConfig, anyString);
         result = mockRequest;
         minTimes = 0;
 
@@ -371,7 +373,7 @@ public class AribaServicesTest {
         result = 200;
         minTimes = 0;
 
-        aribaServices.checkUpdateFilter();
+        aribaServices.checkUpdateFilter(anyString);
         result = false;
         minTimes = 0;
 
@@ -380,13 +382,13 @@ public class AribaServicesTest {
         minTimes = 0;
       }
     };
-    JsonNode jsonNode = aribaServices.createJob(pluginConfig, "page_Token");
+    JsonNode jsonNode = aribaServices.createJob(pluginConfig, "page_Token", "template");
     Assert.assertEquals(7, jsonNode.size());
   }
 
   @Test
   public void testCreateJobWithDate() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request re = null;
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
@@ -404,7 +406,7 @@ public class AribaServicesTest {
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
     new Expectations(AribaServices.class) {
       {
-        aribaServices.buildJobRequest((URL) any, pluginConfig);
+        aribaServices.buildJobRequest((URL) any, pluginConfig, anyString);
         result = mockRequest;
         minTimes = 0;
 
@@ -420,7 +422,7 @@ public class AribaServicesTest {
         result = 200;
         minTimes = 0;
 
-        aribaServices.checkUpdateFilter();
+        aribaServices.checkUpdateFilter(anyString);
         result = true;
         minTimes = 0;
 
@@ -429,13 +431,13 @@ public class AribaServicesTest {
         minTimes = 0;
       }
     };
-    JsonNode jsonNode = aribaServices.createJob(pluginConfig, "page_Token");
+    JsonNode jsonNode = aribaServices.createJob(pluginConfig, "page_Token", "template");
     Assert.assertEquals(7, jsonNode.size());
   }
 
   @Test
   public void testFetchData() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
 
     Request mockRequest = new Request.Builder()
@@ -460,7 +462,7 @@ public class AribaServicesTest {
 
   @Test
   public void testFetchZipFileData() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     HttpUrl.Builder zipUrl = aribaServices.zipBuilder("jobId", "fileName");
     Request request = aribaServices.fetchZipFileData(zipUrl.build().url(), "endpoint");
     Assert.assertEquals(request.url().toString(),
@@ -471,7 +473,7 @@ public class AribaServicesTest {
 
   @Test
   public void testZipBuilder() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     HttpUrl.Builder zipUrl = aribaServices.zipBuilder("jobId", "fileName");
     Request request = aribaServices.fetchZipFileData(zipUrl.build().url(), "endpoint");
     Assert.assertEquals(request.url().toString(),
@@ -481,7 +483,7 @@ public class AribaServicesTest {
 
   @Test
   public void testFetchJobStatus() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -514,7 +516,7 @@ public class AribaServicesTest {
         result = 200;
         minTimes = 0;
 
-        aribaServices.checkUpdateFilter();
+        aribaServices.checkUpdateFilter(anyString);
         result = true;
         minTimes = 0;
 
@@ -529,7 +531,7 @@ public class AribaServicesTest {
 
   @Test
   public void testIsApiLimitExhaustedForDay() throws AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -558,7 +560,7 @@ public class AribaServicesTest {
 
   @Test
   public void testIsApiLimitExhaustedForHour() throws AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -581,7 +583,7 @@ public class AribaServicesTest {
 
   @Test
   public void testIsApiLimitExhaustedForMinute() throws AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -606,7 +608,7 @@ public class AribaServicesTest {
 
   @Test
   public void testIsApiLimitExhaustedForSecond() throws AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -631,7 +633,7 @@ public class AribaServicesTest {
 
   @Test
   public void checkUpdateFilter() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
     new Expectations(AribaServices.class) {
@@ -653,16 +655,16 @@ public class AribaServicesTest {
         minTimes = 0;
       }
     };
-    Assert.assertFalse(aribaServices.checkUpdateFilter());
+    Assert.assertFalse(aribaServices.checkUpdateFilter("template"));
 
   }
 
   @Test
   public void testGetArraySchemaAsObject() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Map<String, String> arrayDocumentName = new HashMap<>();
     arrayDocumentName.put("Suppliers", "SupplierDim");
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     ObjectMapper mapper = new ObjectMapper();
     URL url = null;
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
@@ -685,13 +687,14 @@ public class AribaServicesTest {
         minTimes = 0;
       }
     };
-    List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getArraySchemaAsObject(arrayDocumentName);
+    List<AribaColumnMetadata> aribaColumnMetadata = aribaServices.getArraySchemaAsObject(arrayDocumentName,
+                                                                                         "template");
     Assert.assertEquals(1, aribaColumnMetadata.size());
   }
 
   @Test
   public void testBuildDataRequest() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     String tokenUrl = String.format("https://%s", "api.au.cloud.ariba.com/v2/oauth/token");
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(tokenUrl))
       .newBuilder().addPathSegments("TOKEN_PATH");
@@ -701,7 +704,7 @@ public class AribaServicesTest {
 
   @Test
   public void testHttpAribaCall() throws AribaException, IOException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     Request mockRequest = new Request.Builder()
       .url("https://some-url.com")
       .build();
@@ -735,15 +738,15 @@ public class AribaServicesTest {
 
   @Test
   public void testFetchDataBuilder() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     HttpUrl.Builder builder = aribaServices.fetchDataBuilder("jobId");
-    Assert.assertEquals(builder.build().url().toString(), "https://openapi.au.cloud.ariba.com/api/" +
-      "analytics-reporting-jobresult/v1/prod/jobs/jobId?realm=CloudsufiDSAPP-T");
+    Assert.assertEquals(builder.build().url().toString(), "https://openapi.au.cloud.ariba.com/api/analytics" +
+      "-reporting-jobresult/v1/prod/jobs/jobId?realm=CloudsufiDSAPP-T");
   }
 
   @Test
   public void testBuildFetchRequestr() {
-    aribaServices = new AribaServices(pluginConfig);
+    aribaServices = new AribaServices(pluginConfig.getConnection());
     String tokenUrl = String.format("https://%s", "https://api.au.cloud.ariba.com/v2/oauth/token");
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(tokenUrl))
       .newBuilder().addPathSegments("TOKEN_PATH");

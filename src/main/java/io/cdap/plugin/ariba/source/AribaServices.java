@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
+import io.cdap.plugin.ariba.source.connector.AribaConnectorConfig;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.metadata.AribaColumnMetadata;
 import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
@@ -77,12 +78,9 @@ public class AribaServices {
   private static final String VIEW_TEMPLATE_NAME = "viewTemplateName";
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String VIEW_TEMPLATES = "viewTemplates";
-  private static final String PRODUCT = "product";
-  private static final String REALM = "realm";
   private static final String URL_PATTERN = "(api\\S*?).com";
   private static final String TOKEN_PATH_SEGMENT = "v2/oauth/token";
   private static final String TOKEN_GRANT_TYPE = "grant_type=client_credentials";
-  private static final String ANALYTICS = "analytics";
   private static final String METADATA = "metadata";
   private static final String ACCESS_TOKEN = "access_token";
   private static final String JSON_SCHEMA = "jsonSchema";
@@ -105,7 +103,7 @@ public class AribaServices {
   private static final String UTC = "UTC";
   private static final Logger LOG = LoggerFactory.getLogger(AribaServices.class);
   private static final int MAX_RETRIES = 5;
-  private final AribaPluginConfig pluginConfig;
+  private final AribaConnectorConfig pluginConfig;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final Gson gson = new Gson();
   private int availableLimit;
@@ -114,7 +112,7 @@ public class AribaServices {
   private boolean isMinuteLimitExhausted;
   private boolean isSecondsLimitExhausted;
 
-  public AribaServices(AribaPluginConfig pluginConfig) {
+  public AribaServices(AribaConnectorConfig pluginConfig) {
     this.pluginConfig = pluginConfig;
   }
 
@@ -124,14 +122,14 @@ public class AribaServices {
    * @param retMap retMap
    * @return List<AribaColumnMetadata>
    */
-  private List<AribaColumnMetadata> getObjectFields(Map<String, ObjectFields> retMap) {
+  private List<AribaColumnMetadata> getObjectFields(Map<String, ObjectFields> retMap, String templateName) {
     List<AribaColumnMetadata> aribaColumnMetadata = new ArrayList<>();
     retMap.forEach((v1, v2) -> {
       AribaColumnMetadata.Builder columnDetail = AribaColumnMetadata.builder();
-      columnDetail.viewTemplateName(pluginConfig.getViewTemplateName())
+      columnDetail.viewTemplateName(templateName)
         .name(v1).isPrimaryKey(false).type(ResourceConstants.OBJECT).size(0)
         .isCustomField(false).scale(0).precision(0)
-        .childList(generateColumnValues(Properties.getNonObjectFields(v2.getProperties())));
+        .childList(generateColumnValues(Properties.getNonObjectFields(v2.getProperties()), templateName));
       aribaColumnMetadata.add(columnDetail.build());
     });
     return aribaColumnMetadata;
@@ -145,11 +143,11 @@ public class AribaServices {
    * @throws AribaException
    * @throws IOException
    */
-  private List<AribaColumnMetadata> getArrayFields(Map<String, ArrayFields> retMap)
+  private List<AribaColumnMetadata> getArrayFields(Map<String, ArrayFields> retMap, String templateName)
     throws AribaException, IOException, InterruptedException {
     Map<String, String> arrayDocumentName = new HashMap<>();
 
-    HttpUrl.Builder templateBuilder = metadataTemplateBuilder(true, null);
+    HttpUrl.Builder templateBuilder = metadataTemplateBuilder(true, null, templateName);
     AribaResponseContainer responseContainer = fetchAribaResponse(templateBuilder.build().url(), getAccessToken());
     InputStream responseStream = responseContainer.getResponseBody();
     JsonNode completeSchema = objectMapper.readTree(responseStream);
@@ -166,7 +164,7 @@ public class AribaServices {
       }
 
     }
-    return getArraySchemaAsObject(arrayDocumentName);
+    return getArraySchemaAsObject(arrayDocumentName, templateName);
   }
 
   /**
@@ -178,24 +176,24 @@ public class AribaServices {
    * @throws AribaException
    */
   @VisibleForTesting
-  List<AribaColumnMetadata> getArraySchemaAsObject(Map<String, String> arrayDocumentName)
+  List<AribaColumnMetadata> getArraySchemaAsObject(Map<String, String> arrayDocumentName, String templateName)
     throws IOException, AribaException, InterruptedException {
     List<AribaColumnMetadata> aribaColumnMetadata = new ArrayList<>();
 
     for (Map.Entry<String, String> entry : arrayDocumentName.entrySet()) {
-      HttpUrl.Builder templateBuilder = metadataTemplateBuilder(false, entry.getValue());
+      HttpUrl.Builder templateBuilder = metadataTemplateBuilder(false, entry.getValue(), templateName);
       AribaResponseContainer responseContainer = fetchAribaResponse(templateBuilder.build().url(), getAccessToken());
       InputStream responseStream = responseContainer.getResponseBody();
       JsonNode completeSchema = objectMapper.readTree(responseStream);
       AribaMetaResponse res = gson.fromJson(completeSchema.toString(), AribaMetaResponse.class);
       AribaColumnMetadata.Builder columnDetail = AribaColumnMetadata.builder();
-      columnDetail.viewTemplateName(pluginConfig.getViewTemplateName())
+      columnDetail.viewTemplateName(templateName)
         .name(entry.getKey())
         .isPrimaryKey(false).type(ResourceConstants.ARRAY).size(0)
         .isCustomField(false).scale(0).precision(0);
       // Simple Fields
       List<AribaColumnMetadata> array = new ArrayList<>(generateColumnValues(
-        Properties.getNonObjectFields(res.getProperties())));
+        Properties.getNonObjectFields(res.getProperties()), templateName));
       columnDetail.childList(array);
       aribaColumnMetadata.add(columnDetail.build());
     }
@@ -334,7 +332,7 @@ public class AribaServices {
    *
    * @return base64 String
    */
-  private String getBase64EncodedValue() {
+  public String getBase64EncodedValue() {
     return Base64.getEncoder().encodeToString((pluginConfig.getClientId() +
       ":" + pluginConfig.getClientSecret()).getBytes());
   }
@@ -342,9 +340,10 @@ public class AribaServices {
   /**
    * Prepares output schema based on the provided plugin config parameters.
    */
-  public Schema buildOutputSchema(String accessToken) throws IOException, AribaException, InterruptedException {
+  public Schema buildOutputSchema(String accessToken, String templateName)
+    throws IOException, AribaException, InterruptedException {
     LOG.trace("Initiating Metadata Call To Ariba");
-    List<AribaColumnMetadata> aribaColumnMetadataList = getMetadata(accessToken);
+    List<AribaColumnMetadata> aribaColumnMetadataList = getMetadata(accessToken, templateName);
     AribaSchemaGenerator schemaGenerator = new AribaSchemaGenerator(aribaColumnMetadataList);
     return schemaGenerator.buildSchema();
   }
@@ -354,9 +353,9 @@ public class AribaServices {
    *
    * @param accessToken {@code Access Token}
    */
-  public List<AribaColumnMetadata> getMetadata(String accessToken) throws
-    IOException, AribaException, InterruptedException {
-    HttpUrl.Builder templateBuilder = metadataTemplateBuilder(false, null);
+  public List<AribaColumnMetadata> getMetadata(String accessToken, String templateName)
+    throws IOException, AribaException, InterruptedException {
+    HttpUrl.Builder templateBuilder = metadataTemplateBuilder(false, null, templateName);
     AribaResponseContainer responseContainer = fetchAribaResponse(templateBuilder.build().url(), accessToken);
     InputStream responseStream = responseContainer.getResponseBody();
     JsonNode jsonNode = objectMapper.readTree(responseStream);
@@ -365,11 +364,11 @@ public class AribaServices {
       AribaMetaResponse res = gson.fromJson(jsonNode.toString(), AribaMetaResponse.class);
       // Simple Fields
       List<AribaColumnMetadata> columnDetails =
-        generateColumnValues(Properties.getNonObjectFields(res.getProperties()));
+        generateColumnValues(Properties.getNonObjectFields(res.getProperties()), templateName);
       // Object Fields
-      columnDetails.addAll(getObjectFields(Properties.getObjectFields(res.getProperties())));
+      columnDetails.addAll(getObjectFields(Properties.getObjectFields(res.getProperties()), templateName));
       // Array Fields
-      columnDetails.addAll(getArrayFields(Properties.getArrayFields(res.getProperties())));
+      columnDetails.addAll(getArrayFields(Properties.getArrayFields(res.getProperties()), templateName));
       return columnDetails;
     }
     String errMsg = jsonNode.get(ResourceConstants.MESSAGE).asText() != null
@@ -382,9 +381,9 @@ public class AribaServices {
    * @param aribaPluginConfig ariba plugin config
    * @return JsonNode
    */
-  public JsonNode createJob(AribaPluginConfig aribaPluginConfig, @Nullable String pageToken) throws
-    AribaException, IOException, InterruptedException {
-    Request req = buildJobRequest(jobBuilder(pageToken).build().url(), aribaPluginConfig);
+  public JsonNode createJob(AribaPluginConfig aribaPluginConfig, @Nullable String pageToken, String templateName)
+    throws AribaException, IOException, InterruptedException {
+    Request req = buildJobRequest(jobBuilder(pageToken).build().url(), aribaPluginConfig, templateName);
     int count = 0;
     Response response;
     do {
@@ -469,7 +468,7 @@ public class AribaServices {
    * @param jsonNode Response value in json format
    * @return list of AribaColumnMetadata.ColumnDetails
    */
-  private List<AribaColumnMetadata> generateColumnValues(Map<String, SimpleFields> jsonNode) {
+  private List<AribaColumnMetadata> generateColumnValues(Map<String, SimpleFields> jsonNode, String templateName) {
     List<AribaColumnMetadata> columnDetails = new ArrayList<>();
     jsonNode.forEach(
       (selectField, value) -> {
@@ -484,7 +483,7 @@ public class AribaServices {
           boolean isPrimaryKey = value.isPrimaryKey();
 
           AribaColumnMetadata columns =
-            new AribaColumnMetadata(pluginConfig.getViewTemplateName(), name, type, size,
+            new AribaColumnMetadata(templateName, name, type, size,
                                     false, precision, scale, isPrimaryKey, null);
           columnDetails.add(columns);
         }
@@ -502,7 +501,7 @@ public class AribaServices {
    * @return {@code AribaResponseContainer}
    */
   @VisibleForTesting
-  AribaResponseContainer fetchAribaResponse(URL endpoint, String accessToken)
+  public AribaResponseContainer fetchAribaResponse(URL endpoint, String accessToken)
     throws IOException, AribaException, InterruptedException {
     Response res = httpAribaCall(endpoint, accessToken);
     return aribaResponse(res);
@@ -554,7 +553,7 @@ public class AribaServices {
       .addPathSegments(JOB_PATH)
       .addPathSegments(pluginConfig.getSystemType())
       .addPathSegments(JOBS)
-      .addQueryParameter(REALM, pluginConfig.getRealm())
+      .addQueryParameter(ResourceConstants.REALM, pluginConfig.getRealm())
       .addQueryParameter(ResourceConstants.PAGE_TOKEN, pageToken);
   }
 
@@ -586,19 +585,19 @@ public class AribaServices {
    *
    * @return HttpUrl.Builder
    */
-  private HttpUrl.Builder metadataTemplateBuilder(boolean isArraySchema, String documentName) {
+  private HttpUrl.Builder metadataTemplateBuilder(boolean isArraySchema, String documentName, String templateName) {
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(pluginConfig.getBaseURL()))
       .newBuilder()
       .addPathSegments(METADATA_PATH)
       .addPathSegments(pluginConfig.getSystemType())
       .addPathSegments(METADATA)
-      .addQueryParameter(PRODUCT, ANALYTICS)
-      .addQueryParameter(REALM, pluginConfig.getRealm());
+      .addQueryParameter(ResourceConstants.PRODUCT, ResourceConstants.ANALYTICS)
+      .addQueryParameter(ResourceConstants.REALM, pluginConfig.getRealm());
     if (!isArraySchema && documentName == null) {
       builder.addQueryParameter(JSON_SCHEMA, TRUE)
-        .addQueryParameter(VIEW_TEMPLATE_NAME, pluginConfig.getViewTemplateName());
+        .addQueryParameter(VIEW_TEMPLATE_NAME, templateName);
     } else {
-      builder.addQueryParameter(VIEW_TEMPLATE_NAME, pluginConfig.getViewTemplateName());
+      builder.addQueryParameter(VIEW_TEMPLATE_NAME, templateName);
     }
     if (!isArraySchema && documentName != null) {
       builder.removeAllQueryParameters(VIEW_TEMPLATE_NAME)
@@ -621,7 +620,7 @@ public class AribaServices {
       .addPathSegments(pluginConfig.getSystemType())
       .addPathSegments(JOBS)
       .addPathSegments(jobId)
-      .addQueryParameter(REALM, pluginConfig.getRealm());
+      .addQueryParameter(ResourceConstants.REALM, pluginConfig.getRealm());
   }
 
   /**
@@ -774,8 +773,8 @@ public class AribaServices {
    * @return Request object
    */
   @VisibleForTesting
-  protected Request buildJobRequest(URL endpoint, AribaPluginConfig aribaPluginConfig) throws
-    AribaException, IOException, InterruptedException {
+  protected Request buildJobRequest(URL endpoint, AribaPluginConfig aribaPluginConfig, String templateName)
+    throws AribaException, IOException, InterruptedException {
     LocalDateTime date = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     okhttp3.MediaType.parse(APP_JSON);
     String fromDate = aribaPluginConfig.getFromDate() != null ?
@@ -785,14 +784,14 @@ public class AribaServices {
       aribaPluginConfig.getToDate() : String.valueOf(date.atZone((ZoneId.of(UTC))).withFixedOffsetZone());
     RequestBody body;
 
-    if (!checkUpdateFilter()) {
+    if (!checkUpdateFilter(templateName)) {
       body = RequestBody.create(okhttp3.MediaType.parse(APP_JSON),
                                 String.format("{ " + "\"" + VIEW_TEMPLATE_NAME + "\": \"%s\",\"filters\": {\n" +
                                                 "        \"createdDateFrom\": \"%s\",\n" +
                                                 "        \"createdDateTo\": \"%s\"\n" +
                                                 "    }}", aribaPluginConfig.getViewTemplateName(),
                                               fromDate, toDate));
-    } else if (checkUpdateFilter() && aribaPluginConfig.getFromDate() != null) {
+    } else if (checkUpdateFilter(templateName) && aribaPluginConfig.getFromDate() != null) {
       body = RequestBody.create(okhttp3.MediaType.parse(APP_JSON),
                                 String.format("{ " + "\"" + VIEW_TEMPLATE_NAME + "\": \"%s\",\"filters\": {\n" +
                                                 "        \"updatedDateFrom\": \"%s\",\n" +
@@ -821,8 +820,9 @@ public class AribaServices {
    * @throws IOException
    */
   @VisibleForTesting
-  protected boolean checkUpdateFilter() throws AribaException, IOException, InterruptedException {
-    HttpUrl.Builder templateBuilder = filterTemplateBuilder();
+  protected boolean checkUpdateFilter(String templateName) throws AribaException,
+    IOException, InterruptedException {
+    HttpUrl.Builder templateBuilder = filterTemplateBuilder(templateName);
     AribaResponseContainer responseContainer = fetchAribaResponse(templateBuilder.build().url(), getAccessToken());
     InputStream responseStream = responseContainer.getResponseBody();
     JsonNode jsonNode = objectMapper.readTree(responseStream);
@@ -849,7 +849,7 @@ public class AribaServices {
       .addPathSegments(jobId)
       .addPathSegments(ResourceConstants.FILES)
       .addPathSegments(fileName)
-      .addQueryParameter(REALM, pluginConfig.getRealm());
+      .addQueryParameter(ResourceConstants.REALM, pluginConfig.getRealm());
   }
 
   /**
@@ -857,15 +857,15 @@ public class AribaServices {
    *
    * @return HttpUrl.Builder
    */
-  private HttpUrl.Builder filterTemplateBuilder() {
+  private HttpUrl.Builder filterTemplateBuilder(String templateName) {
     return Objects.requireNonNull(HttpUrl.parse(pluginConfig.getBaseURL()))
       .newBuilder()
       .addPathSegments(METADATA_PATH)
       .addPathSegments(pluginConfig.getSystemType())
       .addPathSegments(VIEW_TEMPLATES)
-      .addPathSegments(pluginConfig.getViewTemplateName())
-      .addQueryParameter(PRODUCT, ANALYTICS)
-      .addQueryParameter(REALM, pluginConfig.getRealm());
+      .addPathSegments(templateName)
+      .addQueryParameter(ResourceConstants.PRODUCT, ResourceConstants.ANALYTICS)
+      .addQueryParameter(ResourceConstants.REALM, pluginConfig.getRealm());
   }
 
   /**
@@ -883,4 +883,3 @@ public class AribaServices {
   }
 
 }
-
