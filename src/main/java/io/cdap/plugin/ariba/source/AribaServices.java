@@ -532,7 +532,7 @@ public class AribaServices {
    * @return Request
    */
   @VisibleForTesting
-  Request buildDataRequest(URL endpoint, String accessToken) {
+  public Request buildDataRequest(URL endpoint, String accessToken) {
     return new Request.Builder()
       .addHeader(AUTHORIZATION, getAuthenticationKey(accessToken))
       .addHeader(API_KEY, pluginConfig.getApiKey())

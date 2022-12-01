@@ -20,6 +20,7 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
+import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.plugin.ariba.source.AribaServices;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
@@ -49,12 +50,9 @@ public class AribaConnectorConfig extends PluginConfig {
   public static final String APIKEY = "apiKey";
   public static final String BASE_URL = "baseURL";
   public static final String REALM = "realm";
-  private static final String TOKEN_GRANT_TYPE = "grant_type=client_credentials";
-  private static final String POST = "POST";
-  private static final String AUTHORIZATION = "Authorization";
-  private static final String CONTENT_TYPE = "Content-Type";
   private static final String COMMON_ACTION = ResourceConstants.ERR_MISSING_PARAM_OR_MACRO_ACTION.getMsgForKey();
-  private static final Logger LOG = LoggerFactory.getLogger(AribaConnectorConfig.class);
+  private static final String METADATA_PATH = "api/analytics-reporting-view/v1";
+  private static final String PATH_SEGMENT = "%s/viewTemplates";
 
   @Macro
   @Description("Ariba Client ID.")
@@ -143,36 +141,24 @@ public class AribaConnectorConfig extends PluginConfig {
   }
 
   public final void validateToken(FailureCollector collector) {
-    String tokenUrl = "https://api.au.cloud.ariba.com/v2/oauth/token";
-    HttpUrl.Builder builder = HttpUrl.parse(tokenUrl).newBuilder();
-    URL url = builder.build().url();
+    AribaServices aribaServices = new AribaServices(this);
     try {
-      if (httpAribaTokenCall(url).code() != HttpURLConnection.HTTP_OK) {
+      String accessToken = aribaServices.getAccessToken();
+      URL viewTemplatesURL = HttpUrl.parse(this.getBaseURL()).
+        newBuilder()
+        .addPathSegments(METADATA_PATH)
+        .addPathSegments(String.format(PATH_SEGMENT, this.getSystemType()))
+        .addQueryParameter(ResourceConstants.PRODUCT, ResourceConstants.ANALYTICS)
+        .addQueryParameter(ResourceConstants.REALM, this.getRealm()).build().url();
+      OkHttpClient enhancedOkHttpClient = new OkHttpClient();
+      Request req = aribaServices.buildDataRequest(viewTemplatesURL, accessToken);
+      Response response = enhancedOkHttpClient.newCall(req).execute();
+      if (response.code() != HttpURLConnection.HTTP_OK) {
         collector.addFailure("Credentials are incorrect", "Please check the credentials");
       }
-    } catch (IOException e) {
-      LOG.error(" Unable to validate token", e);
+    } catch (IOException | AribaException e) {
+      collector.addFailure("Credentials are incorrect", "Please check the credentials");
     }
-  }
-
-  private Response httpAribaTokenCall(URL endpoint) throws IOException {
-    OkHttpClient enhancedOkHttpClient = new OkHttpClient();
-    Request req = buildTokenRequest(endpoint);
-    // No API limit on this call
-    return enhancedOkHttpClient.newCall(req).execute();
-  }
-
-  private Request buildTokenRequest(URL endpoint) {
-    AribaServices aribaServices = new AribaServices(this);
-    String mediaType = MediaType.APPLICATION_FORM_URLENCODED;
-    RequestBody body = RequestBody.create(TOKEN_GRANT_TYPE,
-                                          okhttp3.MediaType.parse(mediaType));
-    return new Request.Builder()
-      .get().url(endpoint)
-      .method(POST, body)
-      .addHeader(AUTHORIZATION, String.format("Basic %s", aribaServices.getBase64EncodedValue()))
-      .addHeader(CONTENT_TYPE, mediaType)
-      .build();
   }
 
 }

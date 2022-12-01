@@ -39,6 +39,13 @@ import io.cdap.plugin.ariba.source.util.ResourceConstants;
 import io.cdap.plugin.common.ConfigUtil;
 import mockit.Expectations;
 import mockit.Mocked;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -153,6 +160,8 @@ public class PropertiesTest {
   private AribaPluginConfig pluginConfig;
   private Properties properties;
   private AribaServices aribaServices;
+  private OkHttpClient okHttpClient;
+  private Response res;
 
   @Before
   public void setUp() {
@@ -238,19 +247,64 @@ public class PropertiesTest {
   }
 
   @Test
-  public void teatValidateFields() throws AribaException, IOException {
+  public void testValidateFieldsWithoutAccessToken() {
     MockFailureCollector collector = new MockFailureCollector();
     AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
     connectorConfig.validateToken(collector);
-    collector.getOrThrowException();
+    Assert.assertEquals(1, collector.getValidationFailures().size());
+  }
+
+  @Test
+  public void testValidateToken() throws AribaException, IOException {
+    MockFailureCollector collector = new MockFailureCollector();
+    AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    okHttpClient = new OkHttpClient();
+    Request mockRequest = new Request.Builder().url("https://some-url.com").build();
+    res = new Response.Builder()
+      .request(mockRequest)
+      .protocol(Protocol.HTTP_2)
+      .code(200) // status code
+      .message("")
+      .body(ResponseBody.create(
+        MediaType.get("application/json; charset=utf-8"),
+        "{}")).build();
+    new Expectations(AribaServices.class, OkHttpClient.class, Response.class) {
+      {
+        aribaServices.getAccessToken();
+        result = "token";
+        minTimes = 0;
+
+        okHttpClient.newCall((Request) any).execute();
+        result = res;
+        minTimes = 0;
+
+      }
+    };
+    connectorConfig.validateToken(collector);
     Assert.assertEquals(0, collector.getValidationFailures().size());
+  }
+
+  @Test
+  public void testValidateTokenWithInvalidResponse() throws AribaException, IOException {
+    MockFailureCollector collector = new MockFailureCollector();
+    AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    new Expectations(AribaServices.class) {
+      {
+        aribaServices.getAccessToken();
+        result = "token";
+        minTimes = 0;
+      }
+    };
+    connectorConfig.validateToken(collector);
+    Assert.assertEquals(1, collector.getValidationFailures().size());
   }
 
   private void testTest(AribaConnector connector) {
     ConnectorContext context = new MockConnectorContext(new MockConnectorConfigurer());
     connector.test(context);
-    ValidationException validationException = context.getFailureCollector().getOrThrowException();
-    Assert.assertTrue(validationException.getFailures().isEmpty());
+    Assert.assertEquals(1, context.getFailureCollector().getValidationFailures().size());
   }
 
   @Test
