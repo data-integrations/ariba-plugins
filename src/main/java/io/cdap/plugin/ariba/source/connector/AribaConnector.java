@@ -41,6 +41,8 @@ import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
 import io.cdap.plugin.common.ConfigUtil;
+import io.cdap.plugin.common.Constants;
+import io.cdap.plugin.common.ReferenceNames;
 import okhttp3.HttpUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +120,7 @@ public class AribaConnector implements Connector {
     String template = connectorSpecRequest.getPath();
     if (template != null) {
       properties.put(AribaPluginConfig.TEMPLATE_NAME, template);
+      properties.put(Constants.Reference.REFERENCE_NAME, ReferenceNames.cleanseReferenceName(template));
     }
     try {
       Schema schema = aribaServices.buildOutputSchema(accessToken, template);
