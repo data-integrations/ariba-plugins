@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.batch.BatchSource;
@@ -32,7 +33,9 @@ import io.cdap.cdap.etl.api.connector.Connector;
 import io.cdap.cdap.etl.api.connector.ConnectorContext;
 import io.cdap.cdap.etl.api.connector.ConnectorSpec;
 import io.cdap.cdap.etl.api.connector.ConnectorSpecRequest;
+import io.cdap.cdap.etl.api.connector.DirectConnector;
 import io.cdap.cdap.etl.api.connector.PluginSpec;
+import io.cdap.cdap.etl.api.connector.SampleRequest;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.plugin.ariba.source.AribaBatchSource;
 import io.cdap.plugin.ariba.source.AribaServices;
@@ -53,7 +56,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -64,7 +69,7 @@ import java.util.stream.Collectors;
 @Plugin(type = Connector.PLUGIN_TYPE)
 @Name(ResourceConstants.PLUGIN_NAME)
 @Description("Connection to access data from Ariba.")
-public class AribaConnector implements Connector {
+public class AribaConnector implements DirectConnector {
   private static final Logger LOG = LoggerFactory.getLogger(AribaConnector.class);
   private static final String METADATA_PATH = "api/analytics-reporting-view/v1";
   private static final String ENTITY_TYPE_TEMPLATE = "template";
@@ -165,5 +170,11 @@ public class AribaConnector implements Connector {
       jsonElements.addAll(jsonObject.getAsJsonArray(RECORDS));
     }
     return jsonElements;
+  }
+
+  @Override
+  public List<StructuredRecord> sample(ConnectorContext connectorContext, SampleRequest sampleRequest)
+    throws IOException {
+    return Collections.EMPTY_LIST;
   }
 }
