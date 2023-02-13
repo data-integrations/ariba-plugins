@@ -88,6 +88,7 @@ public enum ResourceConstants {
   public static final String PRODUCT = "product";
   public static final String REALM = "realm";
   public static final String ANALYTICS = "analytics";
+  public static final String API_KEY = "apiKey";
 
   public static final Integer DEFAULT_CODE = 1500;
   public static final String PLUGIN_NAME = "Ariba";

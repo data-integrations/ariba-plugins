@@ -23,6 +23,7 @@ import io.cdap.cdap.etl.api.connector.ConnectorContext;
 import io.cdap.cdap.etl.api.connector.ConnectorSpec;
 import io.cdap.cdap.etl.api.connector.ConnectorSpecRequest;
 import io.cdap.cdap.etl.api.connector.PluginSpec;
+import io.cdap.cdap.etl.api.connector.SampleRequest;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.common.MockConnectorConfigurer;
 import io.cdap.cdap.etl.mock.common.MockConnectorContext;
@@ -56,6 +57,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,8 @@ public class PropertiesTest {
   private final Gson gson = new Gson();
   @Mocked
   AribaResponseContainer response;
+  SampleRequest sampleRequest;
+
   String jsonNode = "{\n" +
     "  \"type\": \"object\",\n" +
     "  \"access_token\": \"jiuokiopu\",\n" +
@@ -157,6 +161,7 @@ public class PropertiesTest {
     "    }\n" +
     "  }\n" +
     "}";
+
   private AribaPluginConfig pluginConfig;
   private Properties properties;
   private AribaServices aribaServices;
@@ -378,4 +383,42 @@ public class PropertiesTest {
     Assert.assertEquals("true", properties.get(ConfigUtil.NAME_USE_CONNECTION));
     Assert.assertEquals("${conn(connection-id)}", properties.get(ConfigUtil.NAME_CONNECTION));
   }
-}
+
+  @Test
+  public void testSample() throws AribaException, IOException, InterruptedException {
+    AribaConnector aribaConnector = new AribaConnector(pluginConfig.getConnection());
+    aribaServices = new AribaServices(pluginConfig.getConnection());
+    sampleRequest = SampleRequest.builder(1).build();
+    URL url = null;
+    InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
+    new Expectations(AribaServices.class, SampleRequest.class) {
+      {
+        aribaServices.fetchAribaResponse(url, anyString);
+        result = response;
+        minTimes = 0;
+
+        response.getResponseBody();
+        result = inputStream;
+        minTimes = 0;
+
+        response.getHttpStatusCode();
+        result = 200;
+        minTimes = 0;
+
+        aribaServices.getAccessToken();
+        result = "testToken";
+        minTimes = 0;
+
+        sampleRequest.getPath();
+        result = "requisitionLineItemView";
+        minTimes = 0;
+
+      }
+    };
+    Assert.assertTrue(aribaConnector.sample(new MockConnectorContext(new MockConnectorConfigurer()), sampleRequest).
+      isEmpty());
+  }
+
+  }
+
+
