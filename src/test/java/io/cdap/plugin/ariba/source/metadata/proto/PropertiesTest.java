@@ -24,7 +24,6 @@ import io.cdap.cdap.etl.api.connector.ConnectorSpec;
 import io.cdap.cdap.etl.api.connector.ConnectorSpecRequest;
 import io.cdap.cdap.etl.api.connector.PluginSpec;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
-import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.common.MockConnectorConfigurer;
 import io.cdap.cdap.etl.mock.common.MockConnectorContext;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
@@ -57,7 +56,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +173,8 @@ public class PropertiesTest {
                                          "prod", "CloudsufiDSAPP-T",
                                          "SourcingProjectFactSystemView", "08ee0299-4849-42a4-8464-3abed75fc74e",
                                          "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds", "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+                                         "https://api.au.cloud.ariba.com", "2022-01-28T10:05:02Z",
+                                          "2022-01-31T10:05:02Z");
   }
 
   @Test
@@ -314,11 +313,10 @@ public class PropertiesTest {
 
   @Test
   public void test() throws IOException, AribaException, InterruptedException {
-    AribaConnector connector = new AribaConnector(new AribaConnectorConfig(pluginConfig.getConnection().getClientId()
-      , pluginConfig.getConnection().getClientSecret(), pluginConfig.getConnection().getBaseURL(),
-                                                                           pluginConfig.getConnection().getRealm(),
-                                                                           pluginConfig.getConnection().getSystemType()
-                                                                          , pluginConfig.getConnection().getApiKey()));
+    AribaConnector connector = new AribaConnector(new AribaConnectorConfig(pluginConfig.getConnection().getClientId(),
+      pluginConfig.getConnection().getClientSecret(), pluginConfig.getConnection().getBaseURL(),
+      pluginConfig.getConnection().getRealm(), pluginConfig.getConnection().getSystemType(),
+      pluginConfig.getConnection().getApiKey(), pluginConfig.getConnection().getTokenURL()));
     testTest(connector);
     testGenerateSpec(connector);
   }

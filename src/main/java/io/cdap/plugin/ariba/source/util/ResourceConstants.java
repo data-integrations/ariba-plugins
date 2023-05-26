@@ -92,6 +92,7 @@ public enum ResourceConstants {
 
   public static final Integer DEFAULT_CODE = 1500;
   public static final String PLUGIN_NAME = "Ariba";
+  public static final String TOKEN_URL = "Token Endpoint";
   private final String code;
   private final String key;
 

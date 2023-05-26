@@ -16,28 +16,26 @@
 
 package io.cdap.plugin.ariba.source.connector;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
-import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.plugin.ariba.source.AribaServices;
 import io.cdap.plugin.ariba.source.exception.AribaException;
+import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
-import javax.ws.rs.core.MediaType;
+import java.net.UnknownHostException;
 
 /**
  * AribaConnectorConfig class
@@ -50,9 +48,11 @@ public class AribaConnectorConfig extends PluginConfig {
   public static final String APIKEY = "apiKey";
   public static final String BASE_URL = "baseURL";
   public static final String REALM = "realm";
+  public static final String TOKEN_URL = "tokenURL";
   private static final String COMMON_ACTION = ResourceConstants.ERR_MISSING_PARAM_OR_MACRO_ACTION.getMsgForKey();
   private static final String METADATA_PATH = "api/analytics-reporting-view/v1";
   private static final String PATH_SEGMENT = "%s/viewTemplates";
+  private static final String MESSAGE = "message";
 
   @Macro
   @Description("Ariba Client ID.")
@@ -67,6 +67,10 @@ public class AribaConnectorConfig extends PluginConfig {
   private final String apiKey;
 
   @Macro
+  @Description("Token Url to obtain the access token.")
+  private final String tokenURL;
+
+  @Macro
   @Description("Base Path of Ariba API.")
   private final String baseURL;
 
@@ -78,13 +82,14 @@ public class AribaConnectorConfig extends PluginConfig {
   private final String systemType;
 
   public AribaConnectorConfig(String clientId, String clientSecret, String apiKey, String baseURL, String realm,
-                              String systemType) {
+                              String systemType, String tokenURL) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.apiKey = apiKey;
     this.baseURL = baseURL;
     this.realm = realm;
     this.systemType = systemType;
+    this.tokenURL = tokenURL;
   }
 
   public String getClientId() {
@@ -109,6 +114,10 @@ public class AribaConnectorConfig extends PluginConfig {
 
   public String getSystemType() {
     return systemType;
+  }
+
+  public String getTokenURL() {
+    return tokenURL;
   }
 
   /**
@@ -138,6 +147,10 @@ public class AribaConnectorConfig extends PluginConfig {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.REALM_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(REALM);
     }
+    if (AribaUtil.isNullOrEmpty(getTokenURL()) && !containsMacro(TOKEN_URL)) {
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.TOKEN_URL);
+      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(TOKEN_URL);
+    }
   }
 
   public final void validateToken(FailureCollector collector) {
@@ -154,11 +167,25 @@ public class AribaConnectorConfig extends PluginConfig {
       Request req = aribaServices.buildDataRequest(viewTemplatesURL, accessToken);
       Response response = enhancedOkHttpClient.newCall(req).execute();
       if (response.code() != HttpURLConnection.HTTP_OK) {
-        collector.addFailure("Credentials are incorrect", "Please check the credentials");
+        getErrorFromResponse(aribaServices, response, collector);
       }
+    } catch (UnknownHostException e) {
+      collector.addFailure("API Endpoint is invalid", null);
     } catch (IOException | AribaException e) {
-      collector.addFailure("Credentials are incorrect", "Please check the credentials");
+      collector.addFailure(e.getMessage(), null);
     }
   }
 
+  private void getErrorFromResponse(AribaServices aribaServices, Response response, FailureCollector collector)
+    throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    AribaResponseContainer responseContainer = aribaServices.tokenResponse(response);
+    if (responseContainer.getResponseBody() != null) {
+      InputStream responseStream = responseContainer.getResponseBody();
+      String errResponse = objectMapper.readTree(responseStream).get(MESSAGE).asText();
+      collector.addFailure(errResponse, null);
+    } else {
+      collector.addFailure("Credentials are incorrect", "Please check the credentials");
+    }
+  }
 }

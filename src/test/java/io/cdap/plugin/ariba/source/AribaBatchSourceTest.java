@@ -69,6 +69,7 @@ public class AribaBatchSourceTest {
                                          "08ee0299-4849-42a4-8464-3abed75fc74e",
                                          "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                          "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
   }
 
@@ -77,7 +78,7 @@ public class AribaBatchSourceTest {
     pluginConfig = new AribaPluginConfig("referenceName", "",
                                          "", "",
                                          "", "clientId",
-                                         "clientSecret", "apiKey",
+                                         "clientSecret", "apiKey", "tokenURL",
                                          "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -106,7 +107,7 @@ public class AribaBatchSourceTest {
     pluginConfig = new AribaPluginConfig("", "url",
                                          "sysType", "realm",
                                          "template", "clientId",
-                                         "clientSecret", "apiKey",
+                                         "clientSecret", "apiKey", "tokenURL",
                                          "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -127,7 +128,8 @@ public class AribaBatchSourceTest {
                                          "https://openapi.au.cloud.ariba.com",
                                          "prod", "CloudsufiDSAPP-T",
                                          "SourcingProjectFactSystemView",
-                                         "", "", "apiKey"
+                                         "", "", "apiKey",
+      "https://api.au.cloud.ariba.com"
       , "2022-01-31T10:05:02Z",
                                          "2022-01-28T10:05:02Z");
     try {
@@ -160,7 +162,7 @@ public class AribaBatchSourceTest {
     pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
                                          "prod", "realm",
                                          "viewTemplateName", "",
-                                         "", "",
+                                         "", "", "tokenURL",
                                          "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -179,6 +181,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z",
                                          "2022-01-31T10:05:02Z");
     try {
@@ -189,7 +192,7 @@ public class AribaBatchSourceTest {
       List<ValidationFailure> failures = s.getFailures();
       Assert.assertEquals("Failures size does not match, " +
                             "'CDF_ARIBA_01501 - Failed to call given Ariba service.'",
-                          1, failures.size());
+                          3, failures.size());
     }
   }
 
@@ -199,6 +202,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z", "");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -217,6 +221,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z", "2021-01-28T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -237,6 +242,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z", "2025-01-28T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -255,6 +261,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "fromDate", "toDate");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -273,6 +280,7 @@ public class AribaBatchSourceTest {
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
                                          "clientSecret", "apiKey",
+                                         "https://api.au.cloud.ariba.com",
                                          "20220128T10:05:02Z", "20230128T10:05:02Z");
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
@@ -292,7 +300,7 @@ public class AribaBatchSourceTest {
                                            "parsing-error-for-date-field{{{browser_user_agent}}}",
                                          "prod", "realm",
                                          "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
+                                         "clientSecret", "apiKey", "tokenURL",
                                          "2022-01-28T10:05:02Z", "2023-01-28T10:05:02Z");
     Assert.assertTrue(pluginConfig.isSchemaBuildRequired());
   }
@@ -564,7 +572,7 @@ public class AribaBatchSourceTest {
       aribaBatchSource.prepareRun(context);
       Assert.fail("testPrepareRunForNullSchema expected to fail, but succeeded");
     } catch (IllegalArgumentException exception) {
-      Assert.assertEquals("Failed to call given Ariba service.", exception.getMessage());
+      Assert.assertEquals("Token Endpoint is incorrect.", exception.getMessage());
     }
   }
 

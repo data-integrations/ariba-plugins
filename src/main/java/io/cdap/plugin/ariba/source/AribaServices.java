@@ -98,7 +98,6 @@ public class AribaServices {
   private static final String SELECT_FIELDS = "selectFields";
   private static final String NAME = "name";
   private static final String TYPE = "type";
-  private static final String HTTPS_PATH = "https://%s";
   private static final String UTC = "UTC";
   private static final Logger LOG = LoggerFactory.getLogger(AribaServices.class);
   private static final int MAX_RETRIES = 5;
@@ -222,26 +221,10 @@ public class AribaServices {
    */
   @VisibleForTesting
   protected URL generateTokenURL() {
-    String tokenUrl = String.format(HTTPS_PATH, fetchAuthURL());
+    String tokenUrl = pluginConfig.getTokenURL();
     HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(tokenUrl))
       .newBuilder().addPathSegments(TOKEN_PATH_SEGMENT);
     return builder.build().url();
-  }
-
-  /**
-   * Fetches Authentication auth url from base url
-   * Base URL: http://openapi.au.cloud.ariba.com
-   * Auth URL: https://api.au.cloud.ariba.com
-   *
-   * @return auth url string
-   */
-  private String fetchAuthURL() {
-    Pattern urlPattern = Pattern.compile(URL_PATTERN);
-    Matcher matcher = urlPattern.matcher(pluginConfig.getBaseURL());
-    if (matcher.find()) {
-      return matcher.group(0);
-    }
-    return pluginConfig.getBaseURL();
   }
 
   /**

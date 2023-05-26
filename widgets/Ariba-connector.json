@@ -5,8 +5,24 @@
   "display-name": "Ariba",
   "configuration-groups": [
     {
-      "label": "Credentials-updated",
+      "label": "Credentials",
       "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Token Endpoint",
+          "name": "tokenURL",
+          "widget-attributes": {
+            "placeholder": "Access token path of the Ariba API, for example, https://api.au.cloud.ariba.com"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "API Endpoint",
+          "name": "baseURL",
+          "widget-attributes": {
+            "placeholder": "Base url of the Ariba API, for example, https://sandbox.api.sap.com"
+          }
+        },
         {
           "widget-type": "textbox",
           "label": "Ariba Client ID",
@@ -29,14 +45,6 @@
           "name": "apiKey",
           "widget-attributes": {
             "placeholder": "Use any Application Key of an Application(s) you created in developer portal."
-          }
-        },
-        {
-          "widget-type": "textbox",
-          "label": "API Endpoint",
-          "name": "baseURL",
-          "widget-attributes": {
-            "placeholder": "Base path of the Ariba API, for example, https://sandbox.api.sap.com"
           }
         },
         {
