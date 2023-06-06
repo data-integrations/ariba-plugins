@@ -18,13 +18,15 @@ You can configure the following properties for the Ariba.
 
 **Reference Name:** Name used to uniquely identify this source for lineage,
 annotating metadata, etc.  
-**API Endpoint (M)**: Base path of the Ariba API, for example, https://sandbox.api.sap.com.  
+**API Endpoint (M)**: Base path of the Ariba API.    
 **System Type**: Type of system the Ariba instance is running on: Production or Sandbox.  
 **Realm (M)**: Realm name from which the data is to be extracted, for example, S4VALL.   
 **View Template Name (M)**: Name of the view template from which data is to be extracted, for example, RequestFactSystemView.
 
-## Credentials:
-
+## Connection:
+**Use Connection:** Whether to use a connection. If a connection is used, you do not need to provide the credentials.  
+**Connection:** Name of the connection to use. Template Name information will be provided by the connection.
+You also can use the macro function ${conn(connection-name)}.  
 **Ariba Client ID (M)**: Ariba Client ID.  
 **Ariba Client Secret (M)**: Ariba Client Secret.  
 **Ariba API Key (M)**: Ariba API Key.
