@@ -62,6 +62,7 @@ public class AribaInputFormatTest {
                                                            "08ee0299-4849-42a4-8464-3abed75fc74e",
                                                            "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                                            "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                                           "https://api.au.cloud.ariba.com",
                                                            "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -97,6 +98,7 @@ public class AribaInputFormatTest {
                                                            "08ee0299-4849-42a4-8464-3abed75fc74e",
                                                            "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                                            "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                                           "https://api.au.cloud.ariba.com",
                                                            "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -134,6 +136,7 @@ public class AribaInputFormatTest {
                                                            "08ee0299-4849-42a4-8464-3abed75fc74e",
                                                            "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                                            "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                                           "https://api.au.cloud.ariba.com",
                                                            "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -172,6 +175,7 @@ public class AribaInputFormatTest {
                                                            "08ee0299-4849-42a4-8464-3abed75fc74e",
                                                            "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                                            "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                                           "https://api.au.cloud.ariba.com",
                                                            "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -209,6 +213,7 @@ public class AribaInputFormatTest {
                                                            "08ee0299-4849-42a4-8464-3abed75fc74e",
                                                            "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
                                                            "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                                           "https://api.au.cloud.ariba.com",
                                                            "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();

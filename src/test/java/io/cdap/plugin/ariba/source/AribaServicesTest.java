@@ -154,6 +154,7 @@ public class AribaServicesTest {
                                          "prod", "CloudsufiDSAPP-T",
                                          "SourcingProjectFactSystemView", "08ee0299-4849-42a4-8464-3abed75fc74e",
                                          "c3B5wvrEsjKucFGlGkkhKSWUDqDRGE2Wds", "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
+                                         "https://api.au.cloud.ariba.com",
                                          "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
   }
 
@@ -216,7 +217,7 @@ public class AribaServicesTest {
       Assert.fail("testCallAribaForTokenForError expected to fail with " +
                     "'Failed to call given Ariba service', but succeeded");
     } catch (AribaException aib) {
-      Assert.assertEquals("Failed to call given Ariba service.", aib.getMessage());
+      Assert.assertEquals("Token Endpoint is incorrect.", aib.getMessage());
     }
   }
 
@@ -455,7 +456,7 @@ public class AribaServicesTest {
       aribaServices.fetchData("jobId", "fileName");
       Assert.fail("testFetchData expected to fail with 'Call failed to get access token', but succeeded");
     } catch (Exception e) {
-      Assert.assertEquals("Call failed to get access token.", e.getMessage());
+      Assert.assertEquals("Credentials are incorrect.", e.getMessage());
     }
 
   }

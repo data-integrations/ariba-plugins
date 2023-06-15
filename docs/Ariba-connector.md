@@ -11,17 +11,19 @@ Properties
 
 **Description:** Description of the connection.
 
-**Ariba Client ID (M)**: Ariba Client ID.
+**Token Endpoint (M):** Token path of the Ariba API.
 
-**Ariba Client Secret (M)**: Ariba Client Secret.  
+**API Endpoint (M):** Base path of the Ariba API.
 
-**Ariba API Key (M)**: Ariba API Key.
+**Ariba Client ID (M):** Ariba Client ID.
 
-**API Endpoint (M)**: Base path of the Ariba API. 
+**Ariba Client Secret (M):** Ariba Client Secret.  
 
-**System Type**: Type of system the Ariba instance is running on: Production or Sandbox.  
+**Ariba API Key (M):** Ariba API Key.
 
-**Realm (M)**: Realm name from which the data is to be extracted, for example, S4VALL.
+**System Type:** Type of system the Ariba instance is running on: Production or Sandbox.  
+
+**Realm (M):** Realm name from which the data is to be extracted, for example, S4VALL.
 
 
 Path of the connection

@@ -10,7 +10,7 @@ For more information, see [Connect to SAP Ariba](https://cloud.google.com/data-f
 ## Properties
 You can configure the following properties for the Ariba.
 
-**Note**: The following indicators are used to define the fields:  
+**Note:** The following indicators are used to define the fields:  
 **M** - Indicates Macros are supported for the respective field  
 **O** - Optional field
 
@@ -18,23 +18,24 @@ You can configure the following properties for the Ariba.
 
 **Reference Name:** Name used to uniquely identify this source for lineage,
 annotating metadata, etc.  
-**API Endpoint (M)**: Base path of the Ariba API.    
-**System Type**: Type of system the Ariba instance is running on: Production or Sandbox.  
-**Realm (M)**: Realm name from which the data is to be extracted, for example, S4VALL.   
-**View Template Name (M)**: Name of the view template from which data is to be extracted, for example, RequestFactSystemView.
+**Token Endpoint (M):** Token path of the Ariba API.
+**API Endpoint (M):** Base path of the Ariba API.    
+**System Type:** Type of system the Ariba instance is running on: Production or Sandbox.  
+**Realm (M):** Realm name from which the data is to be extracted, for example, S4VALL.   
+**View Template Name (M):** Name of the view template from which data is to be extracted, for example, RequestFactSystemView.
 
 ## Connection:
 **Use Connection:** Whether to use a connection. If a connection is used, you do not need to provide the credentials.  
 **Connection:** Name of the connection to use. Template Name information will be provided by the connection.
 You also can use the macro function ${conn(connection-name)}.  
-**Ariba Client ID (M)**: Ariba Client ID.  
-**Ariba Client Secret (M)**: Ariba Client Secret.  
-**Ariba API Key (M)**: Ariba API Key.
+**Ariba Client ID (M):** Ariba Client ID.  
+**Ariba Client Secret (M):** Ariba Client Secret.  
+**Ariba API Key (M):** Ariba API Key.
 
 ## Advanced:
 
-**From Date (M, O)**: Start date of the extraction, for example, "2021-12-01T00:00:00Z".  
-**To Date (M, O)**: End date of the extraction, for example, "2022-03-29T00:00:00Z".
+**From Date (M, O):** Start date of the extraction, for example, "2021-12-01T00:00:00Z".  
+**To Date (M, O):** End date of the extraction, for example, "2022-03-29T00:00:00Z".
 
 
 Data Types Mapping
@@ -68,7 +69,7 @@ TimeCreated <= 2022-03-29T00:00:00Z`.
 
 ### API rate limits
 
-**Job submission limits**: 1 per second, 2 per minute, 8 per hour, 40 per day.
+**Job submission limits:** 1 per second, 2 per minute, 8 per hour, 40 per day.
 
 When the limits are exceeded during a job, the pipeline fails.
 

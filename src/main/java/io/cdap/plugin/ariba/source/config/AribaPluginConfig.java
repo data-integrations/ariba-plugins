@@ -52,6 +52,7 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   public static final String TO_DATE = "toDate";
   public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
   public static final String REFERENCE_NAME = "referenceName";
+  public static final String TOKEN_URL = "tokenURL";
 
   private static final Logger LOG = LoggerFactory.getLogger(AribaPluginConfig.class);
   private static final String COMMON_ACTION = ResourceConstants.ERR_MISSING_PARAM_OR_MACRO_ACTION.getMsgForKey();
@@ -101,12 +102,13 @@ public class AribaPluginConfig extends ReferencePluginConfig {
                            String clientId,
                            String clientSecret,
                            String apiKey,
+                           String tokenURL,
                            @Nullable String fromDate,
                            @Nullable String toDate) {
 
     super(referenceName);
     this.viewTemplateName = viewTemplateName;
-    this.connection = new AribaConnectorConfig(clientId, clientSecret, apiKey, baseURL, realm, systemType);
+    this.connection = new AribaConnectorConfig(clientId, clientSecret, apiKey, baseURL, realm, systemType, tokenURL);
     this.fromDate = fromDate;
     this.toDate = toDate;
   }
@@ -183,6 +185,10 @@ public class AribaPluginConfig extends ReferencePluginConfig {
       String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.VIEW_TEMPLATE_NAME);
       failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(TEMPLATE_NAME);
     }
+    if (AribaUtil.isNullOrEmpty(getConnection().getTokenURL()) && !containsMacro(TOKEN_URL)) {
+      String errMsg = ResourceConstants.ERR_MISSING_PARAM_PREFIX.getMsgForKey(ResourceConstants.TOKEN_URL);
+      failureCollector.addFailure(errMsg, COMMON_ACTION).withConfigProperty(TOKEN_URL);
+    }
   }
   /**
    * Validates the advance parameters.
@@ -242,7 +248,7 @@ public class AribaPluginConfig extends ReferencePluginConfig {
     LOG.debug("Checking output schema creation is required or not.");
     return !containsMacro(BASE_URL) && !containsMacro(REALM) &&
       !containsMacro(SYSTEM_TYPE) && !containsMacro(TEMPLATE_NAME) && !containsMacro(CLIENT_ID)
-      && !containsMacro(CLIENT_SECRET) && !containsMacro(APIKEY);
+      && !containsMacro(CLIENT_SECRET) && !containsMacro(APIKEY) && !containsMacro(TOKEN_URL);
   }
 
 }
