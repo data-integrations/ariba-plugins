@@ -24,6 +24,7 @@ import io.cdap.cdap.etl.api.connector.ConnectorSpec;
 import io.cdap.cdap.etl.api.connector.ConnectorSpecRequest;
 import io.cdap.cdap.etl.api.connector.PluginSpec;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
+import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.common.MockConnectorConfigurer;
 import io.cdap.cdap.etl.mock.common.MockConnectorContext;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
@@ -307,8 +308,12 @@ public class PropertiesTest {
 
   private void testTest(AribaConnector connector) {
     ConnectorContext context = new MockConnectorContext(new MockConnectorConfigurer());
-    connector.test(context);
-    Assert.assertEquals(1, context.getFailureCollector().getValidationFailures().size());
+    try {
+      connector.test(context);
+      Assert.fail("Exception will not thrown if credentials are correct");
+    } catch (ValidationException e) {
+      Assert.assertEquals(1, context.getFailureCollector().getValidationFailures().size());
+    }
   }
 
   @Test

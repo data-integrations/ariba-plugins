@@ -101,7 +101,9 @@ public class AribaConnector implements DirectConnector {
   public void test(ConnectorContext connectorContext) throws ValidationException {
     FailureCollector collector = connectorContext.getFailureCollector();
     config.validateCredentials(collector);
+    collector.getOrThrowException();
     config.validateToken(collector);
+    collector.getOrThrowException();
   }
 
   @Override

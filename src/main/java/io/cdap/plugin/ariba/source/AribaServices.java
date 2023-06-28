@@ -629,7 +629,9 @@ public class AribaServices {
    */
   public Response executeRequest(Request req) throws AribaException, InterruptedException, IOException {
     OkHttpClient enhancedOkHttpClient = getConfiguredClient().build();
-    Response response = enhancedOkHttpClient.newCall(req).execute();
+    Response response = null;
+    try {
+      response = enhancedOkHttpClient.newCall(req).execute();
     if (response.code() != HttpURLConnection.HTTP_OK && AribaUtil.isNullOrEmpty(response.message())) {
       AribaResponseContainer responseContainer = aribaResponse(response);
       InputStream responseStream = responseContainer.getResponseBody();
@@ -643,11 +645,16 @@ public class AribaServices {
       checkAndThrowException(response);
       return response;
     } else {
-      return enhancedOkHttpClient.newCall(req).execute();
+      response = enhancedOkHttpClient.newCall(req).execute();
     }
+  } catch (IOException e) {
+    throw new IOException("Endpoint is incorrect. Unable to validate the source with the provided.", e);
   }
 
-  /**
+    return response;
+}
+
+/**
    * @param jobId Ariba Job Id
    * @return JsonNode
    */
