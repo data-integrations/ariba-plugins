@@ -42,7 +42,7 @@
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>32.0.0-jre</guava.version>
     <gcs.client.version>2.6.0</gcs.client.version>
     <commons-codec.version>1.10</commons-codec.version>
   </properties>
@@ -635,7 +635,7 @@
         <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>31.0.1-jre</version>
+          <version>32.0.0-jre</version>
         </dependency>
       </dependencies>
     </profile>
