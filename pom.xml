@@ -45,6 +45,7 @@
     <guava.version>27.0.1-jre</guava.version>
     <gcs.client.version>2.6.0</gcs.client.version>
     <commons-codec.version>1.10</commons-codec.version>
+    <failsafe.version>3.3.2</failsafe.version>
   </properties>
 
   <repositories>
@@ -60,6 +61,11 @@
 
   <dependencies>
 
+    <dependency>
+      <groupId>dev.failsafe</groupId>
+      <artifactId>failsafe</artifactId>
+      <version>${failsafe.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
