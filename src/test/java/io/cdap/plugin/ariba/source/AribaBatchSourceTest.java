@@ -17,7 +17,6 @@
 package io.cdap.plugin.ariba.source;
 
 import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.api.validation.ValidationFailure;
@@ -48,6 +47,7 @@ public class AribaBatchSourceTest {
   private static AribaBatchSource aribaBatchSource;
   private MockPipelineConfigurer pipelineConfigurer;
   private AribaPluginConfig pluginConfig;
+  private AribaPluginConfig.Builder pluginConfigBuilder;
   private AribaServices aribaServices;
   private Schema schema;
   private AribaInputSplit aribaInputSplit;
@@ -56,30 +56,43 @@ public class AribaBatchSourceTest {
   @Mocked
   private BatchSourceContext context;
 
-  @Mocked
-  private FailureCollector failureCollector;
-
   @Before
   public void setUp() {
     pipelineConfigurer = new MockPipelineConfigurer(null);
-    pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                         "https://openapi.au.cloud.ariba.com",
-                                         "prod", "CloudsufiDSAPP-T",
-                                         "SourcingProjectFactSystemView",
-                                         "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                         "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                         "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                         "https://api.au.cloud.ariba.com",
-                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+    pluginConfigBuilder = new AribaPluginConfig.Builder()
+      .referenceName("unit-test-ref-name")
+      .baseURL("https://openapi.ariba.com")
+      .systemType("prod")
+      .realm("test-realm")
+      .viewTemplateName("SourcingProjectFactSystemView")
+      .clientId("client-id")
+      .clientSecret("client-secret")
+      .apiKey("api-key")
+      .tokenURL("https://api.token.ariba.com")
+      .fromDate("2022-01-28T10:05:02Z")
+      .toDate("2022-01-31T10:05:02Z")
+      .initialRetryDuration(AribaPluginConfig.DEFAULT_INITIAL_RETRY_DURATION_SECONDS)
+      .maxRetryDuration(AribaPluginConfig.DEFAULT_MAX_RETRY_DURATION_SECONDS)
+      .retryMultiplier(AribaPluginConfig.DEFAULT_RETRY_MULTIPLIER)
+      .maxRetryCount(AribaPluginConfig.DEFAULT_MAX_RETRY_COUNT);
+
+    pluginConfig = pluginConfigBuilder.build();
+
+    aribaServices = new AribaServices(pluginConfig.getConnection(),
+      pluginConfig.getMaxRetryCount(),
+      pluginConfig.getInitialRetryDuration(),
+      pluginConfig.getMaxRetryDuration(),
+      pluginConfig.getRetryMultiplier(), false);
   }
 
   @Test
   public void testConfigurePipelineWithInvalidBasicParam() {
-    pluginConfig = new AribaPluginConfig("referenceName", "",
-                                         "", "",
-                                         "", "clientId",
-                                         "clientSecret", "apiKey", "tokenURL",
-                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.baseURL("")
+      .systemType("")
+      .realm("")
+      .viewTemplateName("")
+      .build();
+
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -104,11 +117,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineWithEmptyReferenceName() {
-    pluginConfig = new AribaPluginConfig("", "url",
-                                         "sysType", "realm",
-                                         "template", "clientId",
-                                         "clientSecret", "apiKey", "tokenURL",
-                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.referenceName("").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -124,14 +133,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineWithEmptyClientIdAndClientSecret() {
-    pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                         "https://openapi.au.cloud.ariba.com",
-                                         "prod", "CloudsufiDSAPP-T",
-                                         "SourcingProjectFactSystemView",
-                                         "", "", "apiKey",
-      "https://api.au.cloud.ariba.com"
-      , "2022-01-31T10:05:02Z",
-                                         "2022-01-28T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.clientId("").clientSecret("").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -159,11 +161,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateCredentialParameters() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "",
-                                         "", "", "tokenURL",
-                                         "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.clientId("").clientSecret("").apiKey("").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -177,13 +175,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateAdvancedParametersError() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "2022-01-28T10:05:02Z",
-                                         "2022-01-31T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -192,18 +184,13 @@ public class AribaBatchSourceTest {
       List<ValidationFailure> failures = s.getFailures();
       Assert.assertEquals("Failures size does not match, " +
                             "'CDF_ARIBA_01501 - Failed to call given Ariba service.'",
-                          3, failures.size());
+                          1, failures.size());
     }
   }
 
   @Test
   public void testValidateAdvancedParametersError2() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "2022-01-28T10:05:02Z", "");
+    pluginConfig = pluginConfigBuilder.toDate("").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -217,12 +204,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateAdvancedParametersError3() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "2022-01-28T10:05:02Z", "2021-01-28T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.fromDate("2022-01-28T10:05:02Z").toDate("2021-01-28T10:05:02Z").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -238,12 +220,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateAdvancedParametersError4() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "2022-01-28T10:05:02Z", "2025-01-28T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.fromDate("2022-01-28T10:05:02Z").toDate("2025-01-28T10:05:02Z").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -257,12 +234,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateAdvancedParametersError5() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "fromDate", "toDate");
+    pluginConfig = pluginConfigBuilder.fromDate("fromDate").toDate("toDate").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -276,12 +248,7 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testValidateAdvancedParametersError6() {
-    pluginConfig = new AribaPluginConfig("referenceName", "baseUrl",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey",
-                                         "https://api.au.cloud.ariba.com",
-                                         "20220128T10:05:02Z", "20230128T10:05:02Z");
+    pluginConfig = pluginConfigBuilder.fromDate("20220128T10:05:02Z").toDate("20230128T10:05:02Z").build();
     try {
       aribaBatchSource = new AribaBatchSource(pluginConfig);
       aribaBatchSource.configurePipeline(pipelineConfigurer);
@@ -295,19 +262,14 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testIsSchemaBuildRequired() {
-    pluginConfig = new AribaPluginConfig("referenceName",
-                                         "https://stackoverflow.com/questions/17225948/" +
-                                           "parsing-error-for-date-field{{{browser_user_agent}}}",
-                                         "prod", "realm",
-                                         "viewTemplateName", "clientId",
-                                         "clientSecret", "apiKey", "tokenURL",
-                                         "2022-01-28T10:05:02Z", "2023-01-28T10:05:02Z");
+    pluginConfig = pluginConfigBuilder
+      .baseURL("https://example.com/{{{browser_user_agent}}}")
+      .build();
     Assert.assertTrue(pluginConfig.isSchemaBuildRequired());
   }
 
   @Test
   public void testConfigurePipelineSchemaNotNull() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -327,7 +289,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForException() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -352,7 +313,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -376,7 +336,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException1() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -401,7 +360,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException2() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -426,7 +384,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testConfigurePipelineForAribaException3() throws IOException, AribaException, InterruptedException {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaSchemaGenerator.class, AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -543,6 +500,7 @@ public class AribaBatchSourceTest {
 
       }
     };
+    pluginConfig = pluginConfigBuilder.build();
     aribaBatchSource = new AribaBatchSource(pluginConfig);
     aribaBatchSource.prepareRun(context);
     schema = pipelineConfigurer.getOutputSchema();
@@ -551,7 +509,6 @@ public class AribaBatchSourceTest {
 
   @Test
   public void testPrepareRunForNullSchema() throws Exception {
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     aribaBatchSource = new AribaBatchSource(pluginConfig);
     new Expectations(AribaServices.class, AribaBatchSource.class) {
       {

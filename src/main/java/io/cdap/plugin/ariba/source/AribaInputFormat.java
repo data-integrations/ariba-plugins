@@ -54,7 +54,12 @@ public class AribaInputFormat extends InputFormat<NullWritable, StructuredRecord
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException {
     AribaPluginConfig pluginConfig = getPluginConfig(jobContext);
-    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection());
+    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection(),
+      pluginConfig.getMaxRetryCount(),
+      pluginConfig.getInitialRetryDuration(),
+      pluginConfig.getMaxRetryDuration(),
+      pluginConfig.getRetryMultiplier(),
+      true);
     boolean previewEnabled = Boolean.parseBoolean(jobContext.getConfiguration().
                                                     get(ResourceConstants.IS_PREVIEW_ENABLED));
 
@@ -66,7 +71,12 @@ public class AribaInputFormat extends InputFormat<NullWritable, StructuredRecord
   public RecordReader<NullWritable, StructuredRecord> createRecordReader(InputSplit inputSplit, TaskAttemptContext
     taskAttemptContext) throws IOException {
     AribaPluginConfig pluginConfig = getPluginConfig(taskAttemptContext);
-    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection());
+    AribaServices aribaServices = new AribaServices(pluginConfig.getConnection(),
+      pluginConfig.getMaxRetryCount(),
+      pluginConfig.getInitialRetryDuration(),
+      pluginConfig.getMaxRetryDuration(),
+      pluginConfig.getRetryMultiplier(),
+      true);
     Schema outputSchema = Schema.parseJson(taskAttemptContext.getConfiguration().get(ResourceConstants.OUTPUT_SCHEMA));
     return new AribaRecordReader(aribaServices, outputSchema, pluginConfig);
   }
