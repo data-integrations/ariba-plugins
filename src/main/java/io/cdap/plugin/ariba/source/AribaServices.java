@@ -21,10 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
+import dev.failsafe.Failsafe;
+import dev.failsafe.FailsafeException;
+import dev.failsafe.RetryPolicy;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
 import io.cdap.plugin.ariba.source.connector.AribaConnectorConfig;
 import io.cdap.plugin.ariba.source.exception.AribaException;
+import io.cdap.plugin.ariba.source.exception.AribaRetryableException;
 import io.cdap.plugin.ariba.source.metadata.AribaColumnMetadata;
 import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
 import io.cdap.plugin.ariba.source.metadata.AribaSchemaGenerator;
@@ -57,8 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
@@ -100,18 +102,36 @@ public class AribaServices {
   private static final String TYPE = "type";
   private static final String UTC = "UTC";
   private static final Logger LOG = LoggerFactory.getLogger(AribaServices.class);
-  private static final int MAX_RETRIES = 5;
   private final AribaConnectorConfig pluginConfig;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final Gson gson = new Gson();
   private int availableLimit;
-  private boolean isDayLimitExhausted;
-  private boolean isHourLimitExhausted;
-  private boolean isMinuteLimitExhausted;
-  private boolean isSecondsLimitExhausted;
+  boolean isDayLimitExhausted;
+  boolean isHourLimitExhausted;
+  boolean isMinuteLimitExhausted;
+  boolean isSecondsLimitExhausted;
 
-  public AribaServices(AribaConnectorConfig pluginConfig) {
+  private final Integer initialRetryDuration;
+  private final Integer maxRetryDuration;
+  private final Integer maxRetryCount;
+  private final Integer retryMultiplier;
+
+  /**
+   * Determines if retry is required for the service call.
+   * If true, then the service call will be retried based on the retry configuration.
+   * If false, then the service call will not be retried.
+   */
+  private final boolean retryRequired;
+
+  public AribaServices(AribaConnectorConfig pluginConfig, Integer maxRetryCount,
+                       Integer initialRetryDuration, Integer maxRetryDuration, Integer retryMultiplier,
+                       boolean retryRequired) {
     this.pluginConfig = pluginConfig;
+    this.maxRetryCount = maxRetryCount;
+    this.initialRetryDuration = initialRetryDuration;
+    this.maxRetryDuration = maxRetryDuration;
+    this.retryMultiplier = retryMultiplier;
+    this.retryRequired = retryRequired;
   }
 
   /**
@@ -366,16 +386,7 @@ public class AribaServices {
   public JsonNode createJob(AribaPluginConfig aribaPluginConfig, @Nullable String pageToken, String templateName)
     throws AribaException, IOException, InterruptedException {
     Request req = buildJobRequest(jobBuilder(pageToken).build().url(), aribaPluginConfig, templateName);
-    int count = 0;
-    Response response;
-    do {
-      response = executeRequest(req);
-      if (response.code() == ResourceConstants.API_LIMIT_EXCEED) {
-        checkAndThrowException(response);
-        count++;
-      }
-    } while (response.code() == ResourceConstants.API_LIMIT_EXCEED && count <= MAX_RETRIES);
-
+    Response response = executeRequest(req);
     AribaResponseContainer responseContainer = tokenResponse(response);
     InputStream responseStream = responseContainer.getResponseBody();
     if (responseContainer.getHttpStatusCode() == HttpURLConnection.HTTP_OK) {
@@ -394,17 +405,11 @@ public class AribaServices {
   public JsonNode fetchJobStatus(String accessToken, String jobId)
     throws IOException, AribaException, InterruptedException {
     URL url = fetchDataBuilder(jobId).build().url();
-    int count = 0;
     Request req = buildFetchRequest(url, accessToken);
     Response response = null;
     try {
-      do {
-        response = executeRequest(req);
-        checkAndThrowException(response);
-        count++;
-      } while (response.code() == ResourceConstants.API_LIMIT_EXCEED && count <= MAX_RETRIES);
+      response = executeRequest(req);
       AribaResponseContainer responseContainer = tokenResponse(response);
-
       if (responseContainer.getHttpStatusCode() == HttpURLConnection.HTTP_OK) {
         InputStream responseStream = responseContainer.getResponseBody();
         JsonNode responseNode = objectMapper.readTree(responseStream);
@@ -418,7 +423,9 @@ public class AribaServices {
       }
       throw new AribaException(response.message(), response.code());
     } finally {
-      response.close();
+      if (response != null) {
+        response.close();
+      }
     }
   }
 
@@ -621,6 +628,8 @@ public class AribaServices {
   }
 
   /**
+   * Executes the given Ariba request and returns the response.
+   *
    * @param req request
    * @return Response
    * @throws AribaException       AribaException
@@ -628,52 +637,65 @@ public class AribaServices {
    * @throws IOException          IOException
    */
   public Response executeRequest(Request req) throws AribaException, InterruptedException, IOException {
-    OkHttpClient enhancedOkHttpClient = getConfiguredClient().build();
-    Response response = null;
+    int actualMaxRetryCount = retryRequired ? maxRetryCount : 0;
+    RetryPolicy<Object> retryPolicy = RetryPolicy.builder()
+      .handle(AribaRetryableException.class)
+      .withBackoff(initialRetryDuration, maxRetryDuration, ChronoUnit.SECONDS, retryMultiplier)
+      .withMaxRetries(actualMaxRetryCount)
+      .onRetry(event -> LOG.info("Retrying Ariba call with plugin. Retry count: " + event.getAttemptCount()))
+      .onSuccess(event -> LOG.debug("Ariba plugin call has been executed successfully."))
+      .onRetriesExceeded(event -> LOG.error("Retry limit for the Ariba plugin has been exceeded.",
+        event.getException()))
+      .build();
+
     try {
-      response = enhancedOkHttpClient.newCall(req).execute();
-    if (response.code() != HttpURLConnection.HTTP_OK && AribaUtil.isNullOrEmpty(response.message())) {
-      AribaResponseContainer responseContainer = aribaResponse(response);
-      InputStream responseStream = responseContainer.getResponseBody();
-      JsonNode jsonNode = objectMapper.readTree(responseStream);
-      String errMsg = jsonNode.get(ResourceConstants.MESSAGE).asText() != null
-        ? jsonNode.get(ResourceConstants.MESSAGE).asText() :
-        ResourceConstants.ERR_NOT_FOUND.getMsgForKey();
-      throw new AribaException(errMsg, response.code());
+      return Failsafe.with(retryPolicy).get(() -> executeRetryableRequest(req, actualMaxRetryCount > 0));
+    } catch (FailsafeException fse) {
+      Throwable t = fse.getCause();
+      if (t instanceof AribaException) {
+        throw (AribaException) t;
+      } else if (t instanceof InterruptedException) {
+        throw (InterruptedException) t;
+      } else if (t instanceof IOException) {
+        throw (IOException) t;
+      } else {
+        throw new RuntimeException(t);
+      }
     }
-    if (!isApiLimitExhausted(response)) {
-      checkAndThrowException(response);
-      return response;
-    } else {
-      response = enhancedOkHttpClient.newCall(req).execute();
-    }
-  } catch (IOException e) {
-    throw new IOException("Endpoint is incorrect. Unable to validate the source with the provided.", e);
   }
 
-    return response;
-}
+  /**
+   * Calls given Ariba API.
+   * @param req request
+   * @param shouldWait Do we to wait for time defined in header if API limit is exhausted
+   * @return Response
+   * @throws AribaException          AribaException
+   * @throws InterruptedException    InterruptedException
+   * @throws IOException             IOException
+   * @throws AribaRetryableException
+   */
+  public Response executeRetryableRequest(Request req, boolean shouldWait)
+    throws AribaException, InterruptedException, IOException, AribaRetryableException {
 
-/**
+    LOG.debug("Retryable Ariba URL: " + req.url());
+    OkHttpClient enhancedOkHttpClient = getConfiguredClient().build();
+    Response response = enhancedOkHttpClient.newCall(req).execute();
+    checkAndThrowException(response, shouldWait);
+    return response;
+  }
+
+  /**
+   * Calls given Ariba API.
    * @param jobId Ariba Job Id
    * @return JsonNode
    */
   public JsonNode fetchData(String jobId, String fileName)
     throws IOException, InterruptedException, AribaException {
 
-    OkHttpClient enhancedOkHttpClient = getConfiguredClient().build();
     HttpUrl.Builder zipUrl = zipBuilder(jobId, fileName);
-    Response zipResponse;
-    do {
-      zipResponse = enhancedOkHttpClient
-        .newCall(fetchZipFileData(zipUrl.build().url(), getAccessToken())).execute();
-      if (zipResponse.code() == ResourceConstants.API_LIMIT_EXCEED) {
-        checkAndThrowException(zipResponse);
-      }
-    } while (zipResponse.code() == ResourceConstants.API_LIMIT_EXCEED);
+    Response zipResponse = executeRequest(fetchZipFileData(zipUrl.build().url(), getAccessToken()));
 
-    LOG.info("Fetch Data Response Code is: {} for Job Id: {} , and File: {}"
-      , zipResponse.code(), jobId, fileName);
+    LOG.info("Fetch Data Response Code is: {} for Job Id: {} , and File: {}", zipResponse.code(), jobId, fileName);
 
     AribaResponseContainer responseContainer = tokenResponse(zipResponse);
     try (InputStream responseStream = responseContainer.getResponseBody();
@@ -695,6 +717,7 @@ public class AribaServices {
    * @return boolean
    */
   public boolean isApiLimitExhausted(Response response) {
+    isDayLimitExhausted = isHourLimitExhausted = isMinuteLimitExhausted = isSecondsLimitExhausted = false;
     if (response.code() != HttpURLConnection.HTTP_OK &&
       Integer.parseInt(Objects.requireNonNull(response.header(RATE_LIMIT_DAY))) < 1) {
       isDayLimitExhausted = true;
@@ -719,14 +742,17 @@ public class AribaServices {
    * Check for limit and status code than throws exception accordingly
    *
    * @param response response
+   * @param shouldWait Do we to wait for time defined in header if API limit is exhausted
    * @throws AribaException
    * @throws InterruptedException
    */
   @VisibleForTesting
-  void checkAndThrowException(Response response) throws AribaException, InterruptedException {
+  void checkAndThrowException(Response response, boolean shouldWait) throws AribaException, InterruptedException,
+    AribaRetryableException {
     if (response.code() == HttpURLConnection.HTTP_BAD_REQUEST && !AribaUtil.isNullOrEmpty(response.message())) {
       throw new AribaException(response.message(), response.code());
     }
+
     boolean limitExhausted = isApiLimitExhausted(response);
 
     if (limitExhausted && isDayLimitExhausted) {
@@ -736,20 +762,35 @@ public class AribaServices {
       throw new AribaException(ResourceConstants.ERR_API_LIMIT_EXCEED_FOR_DAY.getMsgForKey(retryAfter),
                                ResourceConstants.LIMIT_EXCEED_ERROR_CODE);
     } else if (limitExhausted && isHourLimitExhausted) {
-      int retryAfter =
-        (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))) / 60) + 1;
-      LOG.info("API rate limit exceeded for the Hour, waiting for {} min", retryAfter);
-      TimeUnit.MINUTES.sleep(retryAfter);
+      if (shouldWait) {
+        int retryAfter =
+          (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))) / 60) + 1;
+        LOG.info("API rate limit exceeded for the Hour, waiting for {} min", retryAfter);
+        TimeUnit.MINUTES.sleep(retryAfter);
+      }
+      String errorMsg = String.format("Call to Ariba failed. Status Code: %s, Root Cause: %s.", response.code(),
+        response.message());
+      throw new AribaRetryableException(errorMsg, response.code());
     } else if (limitExhausted && isMinuteLimitExhausted) {
-      int retryAfter =
-        (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))));
-      LOG.debug("API rate limit exceeded for the Minute, waiting for {} Seconds", retryAfter);
-      TimeUnit.SECONDS.sleep(retryAfter);
+      if (shouldWait) {
+        int retryAfter =
+          (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))));
+        LOG.debug("API rate limit exceeded for the Minute, waiting for {} Seconds", retryAfter);
+        TimeUnit.SECONDS.sleep(retryAfter);
+      }
+      String errorMsg = String.format("Call to Ariba failed. Status Code: %s, Root Cause: %s.", response.code(),
+        response.message());
+      throw new AribaRetryableException(errorMsg, response.code());
     } else if (limitExhausted && isSecondsLimitExhausted) {
-      int retryAfter =
-        (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))));
-      LOG.debug("API rate limit exceeded for the Second, waiting for {} Seconds", retryAfter);
-      TimeUnit.SECONDS.sleep(retryAfter);
+      if (shouldWait) {
+        int retryAfter =
+                (Integer.parseInt(Objects.requireNonNull(response.header(ResourceConstants.RETRY_AFTER))));
+        LOG.debug("API rate limit exceeded for the Second, waiting for {} Seconds", retryAfter);
+        TimeUnit.SECONDS.sleep(retryAfter);
+      }
+      String errorMsg = String.format("Call to Ariba failed. Status Code: %s, Root Cause: %s.", response.code(),
+        response.message());
+      throw new AribaRetryableException(errorMsg, response.code());
     } else if (response.code() != HttpURLConnection.HTTP_OK) {
       throw new AribaException(response.message(), response.code());
     }

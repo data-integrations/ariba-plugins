@@ -53,6 +53,14 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
   public static final String REFERENCE_NAME = "referenceName";
   public static final String TOKEN_URL = "tokenURL";
+  private static final String NAME_INITIAL_RETRY_DURATION = "initialRetryDuration";
+  private static final String NAME_MAX_RETRY_DURATION = "maxRetryDuration";
+  private static final String NAME_RETRY_MULTIPLIER = "retryMultiplier";
+  private static final String NAME_MAX_RETRY_COUNT = "maxRetryCount";
+  public static final int DEFAULT_INITIAL_RETRY_DURATION_SECONDS = 2;
+  public static final int DEFAULT_RETRY_MULTIPLIER = 2;
+  public static final int DEFAULT_MAX_RETRY_COUNT = 3;
+  public static final int DEFAULT_MAX_RETRY_DURATION_SECONDS = 10;
 
   private static final Logger LOG = LoggerFactory.getLogger(AribaPluginConfig.class);
   private static final String COMMON_ACTION = ResourceConstants.ERR_MISSING_PARAM_OR_MACRO_ACTION.getMsgForKey();
@@ -93,6 +101,30 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   @Description("End date of the extract")
   private final String toDate;
 
+  @Name(NAME_INITIAL_RETRY_DURATION)
+  @Description("Time taken for the first retry. Default is 2 seconds.")
+  @Nullable
+  @Macro
+  private final Integer initialRetryDuration;
+
+  @Name(NAME_MAX_RETRY_DURATION)
+  @Description("Maximum time in seconds retries can take. Default is 300 seconds.")
+  @Nullable
+  @Macro
+  private final Integer maxRetryDuration;
+
+  @Name(NAME_MAX_RETRY_COUNT)
+  @Description("Maximum number of retries allowed. Default is 3.")
+  @Nullable
+  @Macro
+  private final Integer maxRetryCount;
+
+  @Name(NAME_RETRY_MULTIPLIER)
+  @Description("Multiplier for exponential backoff. Default is 2.")
+  @Nullable
+  @Macro
+  private final Integer retryMultiplier;
+
 
   public AribaPluginConfig(String referenceName,
                            String baseURL,
@@ -104,13 +136,19 @@ public class AribaPluginConfig extends ReferencePluginConfig {
                            String apiKey,
                            String tokenURL,
                            @Nullable String fromDate,
-                           @Nullable String toDate) {
+                           @Nullable String toDate,
+                           @Nullable Integer initialRetryDuration, @Nullable Integer maxRetryDuration,
+                           @Nullable Integer retryMultiplier, @Nullable Integer maxRetryCount) {
 
     super(referenceName);
     this.viewTemplateName = viewTemplateName;
     this.connection = new AribaConnectorConfig(clientId, clientSecret, apiKey, baseURL, realm, systemType, tokenURL);
     this.fromDate = fromDate;
     this.toDate = toDate;
+    this.initialRetryDuration = initialRetryDuration;
+    this.maxRetryDuration = maxRetryDuration;
+    this.maxRetryCount = maxRetryCount;
+    this.retryMultiplier = retryMultiplier;
   }
 
 
@@ -130,6 +168,22 @@ public class AribaPluginConfig extends ReferencePluginConfig {
   @Nullable
   public String getToDate() {
     return toDate;
+  }
+
+  public int getInitialRetryDuration() {
+    return initialRetryDuration == null ? DEFAULT_INITIAL_RETRY_DURATION_SECONDS : initialRetryDuration;
+  }
+
+  public int getMaxRetryDuration() {
+    return maxRetryDuration == null ? DEFAULT_MAX_RETRY_DURATION_SECONDS : maxRetryDuration;
+  }
+
+  public int getRetryMultiplier() {
+    return retryMultiplier == null ? DEFAULT_RETRY_MULTIPLIER : retryMultiplier;
+  }
+
+  public int getMaxRetryCount() {
+    return maxRetryCount == null ? DEFAULT_MAX_RETRY_COUNT : maxRetryCount;
   }
 
   /**
@@ -152,6 +206,11 @@ public class AribaPluginConfig extends ReferencePluginConfig {
     LOG.debug("Validating the advanced parameters.");
     if (AribaUtil.isNotNullOrEmpty(fromDate) || AribaUtil.isNotNullOrEmpty(toDate)) {
       validateAdvanceParameters(failureCollector);
+    }
+    LOG.debug("Validating the retry parameters.");
+    if (!containsMacro(NAME_INITIAL_RETRY_DURATION) && !containsMacro(NAME_MAX_RETRY_DURATION) &&
+      !containsMacro(NAME_MAX_RETRY_COUNT) && !containsMacro(NAME_RETRY_MULTIPLIER)) {
+      validateRetryConfiguration(failureCollector);
     }
 
     failureCollector.getOrThrowException();
@@ -237,6 +296,34 @@ public class AribaPluginConfig extends ReferencePluginConfig {
     }
   }
 
+  public void validateRetryConfiguration(FailureCollector failureCollector) {
+    if (initialRetryDuration != null && initialRetryDuration <= 0) {
+      failureCollector.addFailure("Initial retry duration must be greater than 0.",
+          "Please specify a valid initial retry duration.")
+        .withConfigProperty(NAME_INITIAL_RETRY_DURATION);
+    }
+    if (maxRetryDuration != null && maxRetryDuration <= 0) {
+      failureCollector.addFailure("Max retry duration must be greater than 0.",
+          "Please specify a valid max retry duration.")
+        .withConfigProperty(NAME_MAX_RETRY_DURATION);
+    }
+    if (maxRetryCount != null && maxRetryCount <= 0) {
+      failureCollector.addFailure("Max retry count must be greater than 0.",
+          "Please specify a valid max retry count.")
+        .withConfigProperty(NAME_MAX_RETRY_COUNT);
+    }
+    if (retryMultiplier != null && retryMultiplier <= 1) {
+      failureCollector.addFailure("Retry multiplier must be strictly greater than 1.",
+          "Please specify a valid retry multiplier.")
+        .withConfigProperty(NAME_RETRY_MULTIPLIER);
+    }
+    if (maxRetryDuration != null && initialRetryDuration != null && maxRetryDuration <= initialRetryDuration) {
+      failureCollector.addFailure("Max retry duration must be greater than initial retry duration.",
+          "Please specify a valid max retry duration.")
+        .withConfigProperty(NAME_MAX_RETRY_DURATION);
+    }
+  }
+
   /**
    * Checks if the call to Ariba service is required for metadata creation.
    * condition parameters: ['host' | 'Realm' | 'Template' | 'Client Id' | 'Client Secret']
@@ -251,4 +338,104 @@ public class AribaPluginConfig extends ReferencePluginConfig {
       && !containsMacro(CLIENT_SECRET) && !containsMacro(APIKEY) && !containsMacro(TOKEN_URL);
   }
 
+  /**
+   * Helper class to simplify {@link AribaPluginConfig} class creation.
+   */
+  public static class Builder {
+    private String referenceName;
+    private String baseURL;
+    private String systemType;
+    private String realm;
+    private String viewTemplateName;
+    private String clientId;
+    private String clientSecret;
+    private String apiKey;
+    private String tokenURL;
+    private String fromDate;
+    private String toDate;
+    private Integer initialRetryDuration;
+    private Integer maxRetryDuration;
+    private Integer retryMultiplier;
+    private Integer maxRetryCount;
+
+    public Builder referenceName(String referenceName) {
+      this.referenceName = referenceName;
+      return this;
+    }
+
+    public Builder baseURL(String baseURL) {
+      this.baseURL = baseURL;
+      return this;
+    }
+
+    public Builder systemType(String systemType) {
+      this.systemType = systemType;
+      return this;
+    }
+
+    public Builder realm(String realm) {
+      this.realm = realm;
+      return this;
+    }
+
+    public Builder viewTemplateName(String viewTemplateName) {
+      this.viewTemplateName = viewTemplateName;
+      return this;
+    }
+
+    public Builder clientId(String clientId) {
+      this.clientId = clientId;
+      return this;
+    }
+
+    public Builder clientSecret(String clientSecret) {
+      this.clientSecret = clientSecret;
+      return this;
+    }
+
+    public Builder apiKey(String apiKey) {
+      this.apiKey = apiKey;
+      return this;
+    }
+
+    public Builder tokenURL(String tokenURL) {
+      this.tokenURL = tokenURL;
+      return this;
+    }
+
+    public Builder fromDate(String fromDate) {
+      this.fromDate = fromDate;
+      return this;
+    }
+
+    public Builder toDate(String toDate) {
+      this.toDate = toDate;
+      return this;
+    }
+
+    public Builder maxRetryCount(Integer maxRetryCount) {
+      this.maxRetryCount = maxRetryCount;
+      return this;
+    }
+
+    public Builder initialRetryDuration(Integer initialRetryDuration) {
+      this.initialRetryDuration = initialRetryDuration;
+      return this;
+    }
+
+    public Builder maxRetryDuration(Integer maxRetryDuration) {
+      this.maxRetryDuration = maxRetryDuration;
+      return this;
+    }
+
+    public Builder retryMultiplier(Integer retryMultiplier) {
+      this.retryMultiplier = retryMultiplier;
+      return this;
+    }
+
+    public AribaPluginConfig build() {
+      return new AribaPluginConfig(referenceName, baseURL, systemType, realm, viewTemplateName, clientId, clientSecret,
+        apiKey, tokenURL, fromDate, toDate, initialRetryDuration, maxRetryDuration, retryMultiplier, maxRetryCount);
+    }
+  }
 }

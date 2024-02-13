@@ -70,95 +70,95 @@ public class PropertiesTest {
   AribaResponseContainer response;
   SampleRequest sampleRequest;
 
-  String jsonNode = "{\n" +
-    "  \"type\": \"object\",\n" +
-    "  \"access_token\": \"jiuokiopu\",\n" +
-    "  \"status\": \"completed\",\n" +
-    "  \"totalNumOfPages\": \"1\",\n" +
-    "  \"currentPageNum\": \"1\",\n" +
-    "  \"message\": \"test\",\n" +
-    "  \"properties\": {\n" +
-    "    \"IsTestProject\": {\n" +
-    "      \"title\": \"IsTestProject\",\n" +
-    "      \"type\": [\n" +
-    "        \"boolean\",\n" +
-    "        \"null\"\n" +
-    "      ],\n" +
-    "      \"precision\": null,\n" +
-    "      \"scale\": null,\n" +
-    "      \"size\": null,\n" +
-    "      \"allowedValues\": null\n" +
-    "    },\n" +
-    "   \"Owner\": {\n" +
-    "      \"type\": [\n" +
-    "        \"object\",\n" +
-    "        \"null\"\n" +
-    "      ],\n" +
-    "      \"properties\": {\n" +
-    "        \"SourceSystem\": {\n" +
-    "          \"title\": \"Owner.SourceSystem\",\n" +
-    "          \"type\": [\n" +
-    "            \"string\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \"precision\": null,\n" +
-    "          \"scale\": null,\n" +
-    "          \"size\": 100,\n" +
-    "          \"allowedValues\": null\n" +
-    "        },\n" +
-    "        \"UserId\": {\n" +
-    "          \"title\": \"Owner.UserId\",\n" +
-    "          \"type\": [\n" +
-    "            \"string\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \"precision\": null,\n" +
-    "          \"scale\": null,\n" +
-    "          \"size\": 50,\n" +
-    "          \"allowedValues\": null\n" +
-    "        }\n" +
-    "      }\n" +
-    "    },\n" +
-    "     \"Organization\": {\n" +
-    "      \"type\": [\n" +
-    "        \"array\",\n" +
-    "        \"null\"\n" +
-    "      ],\n" +
-    "      \"items\": [\n" +
-    "        {\n" +
-    "          \"type\": [\n" +
-    "            \"object\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \"properties\": {}\n" +
-    "        },\n" +
-    "         {\n" +
-    "          \"type\": [\n" +
-    "            \"array\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \n" +
-    "  \"items\": [\n" +
-    "        {\n" +
-    "          \"type\": [\n" +
-    "            \"object\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \"properties\": {}\n" +
-    "        },\n" +
-    "        {\n" +
-    "          \"type\": [\n" +
-    "            \"array\",\n" +
-    "            \"null\"\n" +
-    "          ],\n" +
-    "          \"properties\": {}\n" +
-    "        }\n" +
-    "      ]\n" +
-    "        }\n" +
-    "        \n" +
-    "      ]\n" +
-    "    }\n" +
-    "  }\n" +
+  String jsonNode = "{" +
+    "  \"type\": \"object\"," +
+    "  \"access_token\": \"jiuokiopu\"," +
+    "  \"status\": \"completed\"," +
+    "  \"totalNumOfPages\": \"1\"," +
+    "  \"currentPageNum\": \"1\"," +
+    "  \"message\": \"test\"," +
+    "  \"properties\": {" +
+    "    \"IsTestProject\": {" +
+    "      \"title\": \"IsTestProject\"," +
+    "      \"type\": [" +
+    "        \"boolean\"," +
+    "        \"null\"" +
+    "      ]," +
+    "      \"precision\": null," +
+    "      \"scale\": null," +
+    "      \"size\": null," +
+    "      \"allowedValues\": null" +
+    "    }," +
+    "   \"Owner\": {" +
+    "      \"type\": [" +
+    "        \"object\"," +
+    "        \"null\"" +
+    "      ]," +
+    "      \"properties\": {" +
+    "        \"SourceSystem\": {" +
+    "          \"title\": \"Owner.SourceSystem\"," +
+    "          \"type\": [" +
+    "            \"string\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          \"precision\": null," +
+    "          \"scale\": null," +
+    "          \"size\": 100," +
+    "          \"allowedValues\": null" +
+    "        }," +
+    "        \"UserId\": {" +
+    "          \"title\": \"Owner.UserId\"," +
+    "          \"type\": [" +
+    "            \"string\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          \"precision\": null," +
+    "          \"scale\": null," +
+    "          \"size\": 50," +
+    "          \"allowedValues\": null" +
+    "        }" +
+    "      }" +
+    "    }," +
+    "     \"Organization\": {" +
+    "      \"type\": [" +
+    "        \"array\"," +
+    "        \"null\"" +
+    "      ]," +
+    "      \"items\": [" +
+    "        {" +
+    "          \"type\": [" +
+    "            \"object\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          \"properties\": {}" +
+    "        }," +
+    "         {" +
+    "          \"type\": [" +
+    "            \"array\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          " +
+    "  \"items\": [" +
+    "        {" +
+    "          \"type\": [" +
+    "            \"object\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          \"properties\": {}" +
+    "        }," +
+    "        {" +
+    "          \"type\": [" +
+    "            \"array\"," +
+    "            \"null\"" +
+    "          ]," +
+    "          \"properties\": {}" +
+    "        }" +
+    "      ]" +
+    "        }" +
+    "        " +
+    "      ]" +
+    "    }" +
+    "  }" +
     "}";
 
   private AribaPluginConfig pluginConfig;
@@ -170,12 +170,29 @@ public class PropertiesTest {
   @Before
   public void setUp() {
     properties = new Properties();
-    pluginConfig = new AribaPluginConfig("unit-test-ref-name", "https://openapi.au.cloud.ariba.com",
-                                         "prod", "CloudsufiDSAPP-T",
-                                         "SourcingProjectFactSystemView", "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                         "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds", "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                         "https://api.au.cloud.ariba.com", "2022-01-28T10:05:02Z",
-                                          "2022-01-31T10:05:02Z");
+    AribaPluginConfig.Builder pluginConfigBuilder = new AribaPluginConfig.Builder()
+      .referenceName("unit-test-ref-name")
+      .baseURL("https://openapi.ariba.com")
+      .systemType("prod")
+      .realm("test-realm")
+      .viewTemplateName("SourcingProjectFactSystemView")
+      .clientId("client-id")
+      .clientSecret("client-secret")
+      .apiKey("api-key")
+      .tokenURL("https://api.token.ariba.com")
+      .fromDate("2022-01-28T10:05:02Z")
+      .toDate("2022-01-31T10:05:02Z")
+      .initialRetryDuration(AribaPluginConfig.DEFAULT_INITIAL_RETRY_DURATION_SECONDS)
+      .maxRetryDuration(AribaPluginConfig.DEFAULT_MAX_RETRY_DURATION_SECONDS)
+      .retryMultiplier(AribaPluginConfig.DEFAULT_RETRY_MULTIPLIER)
+      .maxRetryCount(AribaPluginConfig.DEFAULT_MAX_RETRY_COUNT);
+    pluginConfig = pluginConfigBuilder.build();
+
+    aribaServices = new AribaServices(pluginConfig.getConnection(),
+      pluginConfig.getMaxRetryCount(),
+      pluginConfig.getInitialRetryDuration(),
+      pluginConfig.getMaxRetryDuration(),
+      pluginConfig.getRetryMultiplier(), false);
   }
 
   @Test
@@ -263,7 +280,6 @@ public class PropertiesTest {
   public void testValidateToken() throws AribaException, IOException {
     MockFailureCollector collector = new MockFailureCollector();
     AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     okHttpClient = new OkHttpClient();
     Request mockRequest = new Request.Builder().url("https://some-url.com").build();
     res = new Response.Builder()
@@ -294,7 +310,6 @@ public class PropertiesTest {
   public void testValidateTokenWithInvalidResponse() throws AribaException, IOException {
     MockFailureCollector collector = new MockFailureCollector();
     AribaConnectorConfig connectorConfig = pluginConfig.getConnection();
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaServices.class) {
       {
         aribaServices.getAccessToken();
@@ -304,6 +319,7 @@ public class PropertiesTest {
     };
     connectorConfig.validateToken(collector);
     Assert.assertEquals(1, collector.getValidationFailures().size());
+    System.out.println(collector.getValidationFailures().get(0).getMessage());
   }
 
   private void testTest(AribaConnector connector) {
@@ -328,7 +344,6 @@ public class PropertiesTest {
 
   private void testGenerateSpec(AribaConnector connector) throws IOException, AribaException, InterruptedException {
 
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     URL url = null;
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
     new Expectations(AribaServices.class) {
@@ -358,7 +373,6 @@ public class PropertiesTest {
     AribaColumnMetadata columnList = columnDetail.build();
     List<AribaColumnMetadata> columnDetails = new ArrayList<>();
     columnDetails.add(columnList);
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     new Expectations(AribaServices.class) {
       {
         aribaServices.getMetadata(anyString, anyString);
@@ -390,7 +404,6 @@ public class PropertiesTest {
   @Test
   public void testSample() throws AribaException, IOException, InterruptedException {
     AribaConnector aribaConnector = new AribaConnector(pluginConfig.getConnection());
-    aribaServices = new AribaServices(pluginConfig.getConnection());
     sampleRequest = SampleRequest.builder(1).build();
     URL url = null;
     InputStream inputStream = new ByteArrayInputStream(jsonNode.getBytes());
@@ -412,6 +425,10 @@ public class PropertiesTest {
         result = "testToken";
         minTimes = 0;
 
+        aribaServices.isApiLimitExhausted((Response) any);
+        result = false;
+        minTimes = 0;
+
         sampleRequest.getPath();
         result = "requisitionLineItemView";
         minTimes = 0;
@@ -421,7 +438,4 @@ public class PropertiesTest {
     Assert.assertTrue(aribaConnector.sample(new MockConnectorContext(new MockConnectorConfigurer()), sampleRequest).
       isEmpty());
   }
-
-  }
-
-
+}
