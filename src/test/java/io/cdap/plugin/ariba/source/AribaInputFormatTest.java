@@ -26,6 +26,7 @@ import mockit.Mocked;
 import mockit.Tested;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -52,18 +53,32 @@ public class AribaInputFormatTest {
   @Tested
   private AribaInputFormat aribaInputFormat;
 
+  private AribaPluginConfig pluginConfig;
+
+  @Before
+  public void setup() {
+    AribaPluginConfig.Builder pluginConfigBuilder = new AribaPluginConfig.Builder()
+      .referenceName("unit-test-ref-name")
+      .baseURL("https://openapi.ariba.com")
+      .systemType("prod")
+      .realm("test-realm")
+      .viewTemplateName("SourcingProjectFactSystemView")
+      .clientId("client-id")
+      .clientSecret("client-secret")
+      .apiKey("api-key")
+      .tokenURL("https://api.token.ariba.com")
+      .fromDate("2022-01-28T10:05:02Z")
+      .toDate("2022-01-31T10:05:02Z")
+      .initialRetryDuration(AribaPluginConfig.DEFAULT_INITIAL_RETRY_DURATION_SECONDS)
+      .maxRetryDuration(AribaPluginConfig.DEFAULT_MAX_RETRY_DURATION_SECONDS)
+      .retryMultiplier(AribaPluginConfig.DEFAULT_RETRY_MULTIPLIER)
+      .maxRetryCount(AribaPluginConfig.DEFAULT_MAX_RETRY_COUNT);
+
+    pluginConfig = pluginConfigBuilder.build();
+  }
+
   @Test
   public void testCreateRecordReader() throws IOException, AribaException, InterruptedException {
-    AribaPluginConfig pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                                           "https://openapi.au.cloud.ariba.com",
-                                                           "prod",
-                                                           "CloudsufiDSAPP-T",
-                                                           "SourcingProjectFactSystemView",
-                                                           "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                                           "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                                           "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                                           "https://api.au.cloud.ariba.com",
-                                                           "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode createJob = objectMapper.readTree(createJobResponse);
@@ -90,16 +105,6 @@ public class AribaInputFormatTest {
 
   @Test
   public void testCreateJobThrowError() throws IOException, AribaException, InterruptedException {
-    AribaPluginConfig pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                                           "https://openapi.au.cloud.ariba.com",
-                                                           "prod",
-                                                           "CloudsufiDSAPP-T",
-                                                           "SourcingProjectFactSystemView",
-                                                           "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                                           "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                                           "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                                           "https://api.au.cloud.ariba.com",
-                                                           "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode jobData = objectMapper.readTree(createJobResponse1);
@@ -128,16 +133,6 @@ public class AribaInputFormatTest {
 
   @Test
   public void testCreateJobThrowError1() throws IOException, AribaException, InterruptedException {
-    AribaPluginConfig pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                                           "https://openapi.au.cloud.ariba.com",
-                                                           "prod",
-                                                           "CloudsufiDSAPP-T",
-                                                           "SourcingProjectFactSystemView",
-                                                           "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                                           "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                                           "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                                           "https://api.au.cloud.ariba.com",
-                                                           "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode crateJob = objectMapper.readTree(createJobResponse);
@@ -167,16 +162,6 @@ public class AribaInputFormatTest {
 
   @Test
   public void testCreateJobThrowError3() throws IOException, AribaException, InterruptedException {
-    AribaPluginConfig pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                                           "https://openapi.au.cloud.ariba.com",
-                                                           "prod",
-                                                           "CloudsufiDSAPP-T",
-                                                           "SourcingProjectFactSystemView",
-                                                           "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                                           "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                                           "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                                           "https://api.au.cloud.ariba.com",
-                                                           "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode jobData = objectMapper.readTree(createJobResponse1);
@@ -205,16 +190,6 @@ public class AribaInputFormatTest {
 
   @Test
   public void testCreateJobThrowError4() throws IOException, AribaException, InterruptedException {
-    AribaPluginConfig pluginConfig = new AribaPluginConfig("unit-test-ref-name",
-                                                           "https://openapi.au.cloud.ariba.com",
-                                                           "prod",
-                                                           "CloudsufiDSAPP-T",
-                                                           "SourcingProjectFactSystemView",
-                                                           "08ee0299-4849-42a4-8464-3abed75fc74e",
-                                                           "c3B5wvrEsjKucFGlGhKSWUDqDRGE2Wds",
-                                                           "xryi0757SU8pEyk7ePc7grc7vgDXdz8O",
-                                                           "https://api.au.cloud.ariba.com",
-                                                           "2022-01-28T10:05:02Z", "2022-01-31T10:05:02Z");
     aribaInputFormat = new AribaInputFormat();
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode crateJob = objectMapper.readTree(createJobResponse);

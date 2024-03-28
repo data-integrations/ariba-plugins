@@ -22,6 +22,7 @@ import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.plugin.ariba.source.AribaServices;
+import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.metadata.AribaResponseContainer;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
@@ -154,7 +155,13 @@ public class AribaConnectorConfig extends PluginConfig {
   }
 
   public final void validateToken(FailureCollector collector) {
-    AribaServices aribaServices = new AribaServices(this);
+    AribaServices aribaServices = new AribaServices(this,
+      AribaPluginConfig.DEFAULT_MAX_RETRY_COUNT,
+      AribaPluginConfig.DEFAULT_INITIAL_RETRY_DURATION_SECONDS,
+      AribaPluginConfig.DEFAULT_MAX_RETRY_DURATION_SECONDS,
+      AribaPluginConfig.DEFAULT_RETRY_MULTIPLIER,
+      false);
+
     try {
       String accessToken = aribaServices.getAccessToken();
       URL viewTemplatesURL = HttpUrl.parse(this.getBaseURL()).
