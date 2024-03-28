@@ -32,7 +32,6 @@ import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.cdap.etl.api.connector.Connector;
 import io.cdap.plugin.ariba.source.config.AribaPluginConfig;
-import io.cdap.plugin.ariba.source.connector.AribaConnector;
 import io.cdap.plugin.ariba.source.exception.AribaException;
 import io.cdap.plugin.ariba.source.util.AribaUtil;
 import io.cdap.plugin.ariba.source.util.ResourceConstants;
@@ -69,7 +68,12 @@ public class AribaBatchSource extends BatchSource<NullWritable, StructuredRecord
 
   public AribaBatchSource(AribaPluginConfig pluginConfig) {
     this.pluginConfig = pluginConfig;
-    aribaServices = new AribaServices(pluginConfig.getConnection());
+    aribaServices = new AribaServices(pluginConfig.getConnection(),
+      pluginConfig.getMaxRetryCount(),
+      pluginConfig.getInitialRetryDuration(),
+      pluginConfig.getMaxRetryDuration(),
+      pluginConfig.getRetryMultiplier(),
+      false);
   }
 
   @Override

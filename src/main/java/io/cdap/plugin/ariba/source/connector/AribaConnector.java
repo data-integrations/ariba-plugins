@@ -88,6 +88,7 @@ public class AribaConnector implements DirectConnector {
   private static final String TOKEN = "PageToken";
   private static final Gson GSON = new Gson();
   private final AribaConnectorConfig config;
+  private final AribaServices aribaServices;
   private static final String AUTHORIZATION = "Authorization";
   private String accessToken;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -95,6 +96,12 @@ public class AribaConnector implements DirectConnector {
 
   public AribaConnector(AribaConnectorConfig config) {
     this.config = config;
+    aribaServices = new AribaServices(config,
+      AribaPluginConfig.DEFAULT_MAX_RETRY_COUNT,
+      AribaPluginConfig.DEFAULT_INITIAL_RETRY_DURATION_SECONDS,
+      AribaPluginConfig.DEFAULT_MAX_RETRY_DURATION_SECONDS,
+      AribaPluginConfig.DEFAULT_RETRY_MULTIPLIER,
+      false);
   }
 
   @Override
@@ -126,7 +133,6 @@ public class AribaConnector implements DirectConnector {
   @Override
   public ConnectorSpec generateSpec(ConnectorContext connectorContext, ConnectorSpecRequest connectorSpecRequest)
     throws IOException {
-    AribaServices aribaServices = new AribaServices(config);
     try {
       accessToken = aribaServices.getAccessToken();
     } catch (AribaException e) {
@@ -155,7 +161,6 @@ public class AribaConnector implements DirectConnector {
    * returns the list of all the templates present in Ariba.
    */
   private JsonArray listTemplates(String pageToken, JsonArray jsonElements) throws IOException {
-    AribaServices aribaServices = new AribaServices(config);
     try {
       accessToken = aribaServices.getAccessToken();
     } catch (AribaException e) {
@@ -188,7 +193,6 @@ public class AribaConnector implements DirectConnector {
 
   private List<StructuredRecord> listTemplateData(String templateName)
     throws IOException, AribaException, InterruptedException {
-    AribaServices aribaServices = new AribaServices(config);
     try {
       accessToken = aribaServices.getAccessToken();
     } catch (AribaException e) {
