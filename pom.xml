@@ -37,7 +37,7 @@
     <jackson.version>2.5.2</jackson.version>
     <jmockit.version>1.41</jmockit.version>
     <mockito.version>2.24.0</mockito.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
     <okhttp3.version>4.9.1</okhttp3.version>
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
