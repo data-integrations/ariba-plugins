@@ -42,7 +42,7 @@
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>33.8.0-jre</guava.version>
     <gcs.client.version>2.6.0</gcs.client.version>
     <commons-codec.version>1.10</commons-codec.version>
     <failsafe.version>3.3.2</failsafe.version>
@@ -55,6 +55,16 @@
     </repository>
   </repositories>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <dependency>
@@ -65,7 +75,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
@@ -633,11 +642,6 @@
           <artifactId>cdap-e2e-framework</artifactId>
           <version>0.3.0-SNAPSHOT</version>
           <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-          <version>31.0.1-jre</version>
         </dependency>
       </dependencies>
     </profile>
