@@ -27,22 +27,22 @@
     <myproject.root>${basedir}</myproject.root>
     <jee.version>8</jee.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.parent.version>system:cdap-data-pipeline[6.3.0,7.0.0-SNAPSHOT)</cdap.parent.version>
-    <cdap.version>6.6.0</cdap.version>
+    <cdap.parent.version>system:cdap-data-pipeline[6.11.2-SNAPSHOT,7.0.0-SNAPSHOT)</cdap.parent.version>
+    <cdap.version>6.11.7-SNAPSHOT</cdap.version>
     <cdap.plugin.version>2.7.0</cdap.plugin.version>
-    <spark.version>2.3.1</spark.version>
-    <hadoop.version>2.9.2</hadoop.version>
+    <spark.version>3.3.2</spark.version>
+    <hadoop.version>3.3.6</hadoop.version>
     <slf4j.version>1.7.5</slf4j.version>
     <gson.version>2.8.2</gson.version>
     <jackson.version>2.5.2</jackson.version>
-    <jmockit.version>1.41</jmockit.version>
+    <jmockit.version>1.43</jmockit.version>
     <mockito.version>2.24.0</mockito.version>
     <junit.version>4.12</junit.version>
     <okhttp3.version>4.9.1</okhttp3.version>
     <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>33.8.0-jre</guava.version>
     <gcs.client.version>2.6.0</gcs.client.version>
     <commons-codec.version>1.10</commons-codec.version>
     <failsafe.version>3.3.2</failsafe.version>
@@ -55,6 +55,16 @@
     </repository>
   </repositories>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <dependency>
@@ -65,7 +75,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
@@ -94,7 +103,7 @@
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
-      <artifactId>cdap-data-pipeline2_2.11</artifactId>
+      <artifactId>cdap-data-pipeline3_2.12</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
       <exclusions>
@@ -126,7 +135,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.11</artifactId>
+      <artifactId>spark-core_2.12</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
       <exclusions>
@@ -334,11 +343,39 @@
   <build>
     <testSourceDirectory>${testSourceLocation}</testSourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-upper-bound-deps</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireUpperBoundDeps>
+                  <includes>
+                    <include>com.google.guava:guava</include>
+                  </includes>
+                </requireUpperBoundDeps>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>com.google.guava:guava:(,33.8.0-jre)</exclude>
+                  </excludes>
+                  <message>Guava versions older than 33.8.0-jre are banned due to security vulnerabilities (CVE-2023-2976, CVE-2020-8908).</message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>5.1.2</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -366,8 +403,8 @@
         <version>1.1.0</version>
         <configuration>
           <cdapArtifacts>
-            <parent>system:cdap-data-pipeline[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
-            <parent>system:cdap-data-streams[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-pipeline[6.11.2-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-streams[6.11.2-SNAPSHOT,7.0.0-SNAPSHOT)</parent>
           </cdapArtifacts>
         </configuration>
         <executions>
@@ -384,7 +421,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.12</version>
         <executions>
           <execution>
             <id>default-prepare-agent</id>
@@ -457,19 +494,18 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.13.0</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>11</release>
         </configuration>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14.1</version>
+        <version>2.22.0</version>
         <configuration>
-          <!-- <argLine>-Xmx5000m -Djava.awt.headless=true -XX:MaxPermSize=1024m -XX:+UseConcMarkSweepGC -XX:OnOutOfMemoryError="kill -9 %p" -Djava.net.preferIPv4Stack=true</argLine> -->
+          <argLine>-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar</argLine>
           <reuseForks>false</reuseForks>
           <reportFormat>plain</reportFormat>
           <systemPropertyVariables>
@@ -625,19 +661,21 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.8</version>
           </dependency>
+          <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-bom</artifactId>
+            <version>4.1.141.Final</version>
+            <type>pom</type>
+            <scope>import</scope>
+          </dependency>
         </dependencies>
       </dependencyManagement>
       <dependencies>
         <dependency>
           <groupId>io.cdap.tests.e2e</groupId>
           <artifactId>cdap-e2e-framework</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>0.5.0-SNAPSHOT</version>
           <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-          <version>31.0.1-jre</version>
         </dependency>
       </dependencies>
     </profile>
