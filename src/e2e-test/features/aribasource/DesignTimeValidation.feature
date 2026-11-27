@@ -28,6 +28,7 @@ Feature: Ariba Source - Design time validation scenarios
     And Wait with a timeout of 60 seconds
     Then Verify mandatory property error for below listed properties:
       | referenceName    |
+      | tokenURL         |
       | baseURL          |
       | realm            |
       | viewTemplateName |
@@ -41,6 +42,7 @@ Feature: Ariba Source - Design time validation scenarios
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -62,6 +64,7 @@ Feature: Ariba Source - Design time validation scenarios
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -80,6 +83,7 @@ Feature: Ariba Source - Design time validation scenarios
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "invalid.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -98,6 +102,7 @@ Feature: Ariba Source - Design time validation scenarios
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"

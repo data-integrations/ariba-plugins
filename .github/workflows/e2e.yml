@@ -74,7 +74,9 @@ jobs:
             ARIBA_REALM:cdapio-github-builds/ARIBA_REALM
 
       - name: Run tests
-        run: python3 e2e/src/main/scripts/run_e2e_test.py
+        run: |
+          export ARIBA_TOKEN_URL="${ARIBA_TOKEN_URL:-${ARIBA_API_ENDPOINT/openapi./api.}}"
+          python3 e2e/src/main/scripts/run_e2e_test.py
         env:
           ARIBA_CLIENT_ID: ${{ steps.secrets.outputs.ARIBA_CLIENT_ID }}
           ARIBA_CLIENT_SECRET: ${{ steps.secrets.outputs.ARIBA_CLIENT_SECRET }}

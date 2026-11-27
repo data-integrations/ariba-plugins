@@ -612,6 +612,9 @@
                 <ARIBA_API_ENDPOINT>
                   ${ARIBA_API_ENDPOINT}
                 </ARIBA_API_ENDPOINT>
+                <ARIBA_TOKEN_URL>
+                  ${ARIBA_TOKEN_URL}
+                </ARIBA_TOKEN_URL>
                 <ARIBA_REALM>
                   ${ARIBA_REALM}
                 </ARIBA_REALM>
