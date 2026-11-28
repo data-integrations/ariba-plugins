@@ -24,6 +24,7 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Click on the Macro button of Property: "tokenURL" and set the value to: "tokenURL"
     And Click on the Macro button of Property: "baseURL" and set the value to: "apiendpoint"
     And Click on the Macro button of Property: "realm" and set the value to: "realm"
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -47,6 +48,7 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Wait with a timeout of 60 seconds
     And Save and Deploy Pipeline
     And Run the Pipeline in Runtime
+    And Enter runtime argument value from environment variable "admin.tokenurl" for key "tokenURL"
     And Enter runtime argument value from environment variable "admin.apiendpoint" for key "apiendpoint"
     And Enter runtime argument value from environment variable "admin.realm" for key "realm"
     And Enter runtime argument value "ariba.viewtemplatename" for key "viewTemplateName"
@@ -69,6 +71,7 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -106,6 +109,7 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
     And Enter input plugin property: "viewTemplateName" with value: "ariba.viewtemplatename"
@@ -142,6 +146,7 @@ Feature: Ariba Source - Run time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"

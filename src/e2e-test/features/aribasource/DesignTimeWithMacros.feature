@@ -24,6 +24,7 @@ Feature: Ariba Source - Design time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
@@ -41,6 +42,7 @@ Feature: Ariba Source - Design time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Click on the Macro button of Property: "tokenURL" and set the value to: "tokenURL"
     And Click on the Macro button of Property: "baseURL" and set the value to: "baseURL"
     And Select radio button plugin property: "systemType" with value: "prod"
     And Click on the Macro button of Property: "realm" and set the value to: "realm"
@@ -58,6 +60,7 @@ Feature: Ariba Source - Design time scenarios (macros)
     And Select plugin: "SAP Ariba" from the plugins list as: "Source"
     And Navigate to the properties page of plugin: "SAP Ariba"
     And Enter input plugin property: "referenceName" with value: "Referencename"
+    And Enter input plugin property: "tokenURL" with value: "admin.tokenurl" for Credentials and Authorization related fields
     And Enter input plugin property: "baseURL" with value: "admin.apiendpoint" for Credentials and Authorization related fields
     And Enter input plugin property: "realm" with value: "admin.realm" for Credentials and Authorization related fields
     And Select radio button plugin property: "systemType" with value: "prod"
